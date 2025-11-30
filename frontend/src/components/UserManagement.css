@@ -1,0 +1,445 @@
+ .user-management {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 2rem;
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        .admin-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 2rem;
+          padding-bottom: 1.5rem;
+          border-bottom: 2px solid #e5e7eb;
+        }
+
+        .admin-header h1 {
+          margin: 0;
+          color: #1f2937;
+          font-size: 2rem;
+          font-weight: 700;
+        }
+
+        .header-actions {
+          display: flex;
+          gap: 1rem;
+          align-items: center;
+        }
+
+        .btn-export-all,
+        .btn-refresh {
+          padding: 0.75rem 1.5rem;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          font-size: 0.9rem;
+          font-weight: 600;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .btn-export-all {
+          background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+          color: white;
+        }
+
+        .btn-export-all:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-export-all:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+        .btn-refresh {
+          background: #f8fafc;
+          color: #374151;
+          border: 1px solid #e5e7eb;
+        }
+
+        .btn-refresh:hover {
+          background: #f1f5f9;
+          transform: translateY(-1px);
+        }
+
+        .header-info {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          margin-bottom: 2rem;
+          padding: 1rem 1.5rem;
+          background: #f8fafc;
+          border-radius: 8px;
+          border: 1px solid #e5e7eb;
+        }
+
+        .users-count {
+          font-weight: 600;
+          color: #1f2937;
+          font-size: 1.1rem;
+        }
+
+        .admin-note {
+          color: #6b7280;
+          font-size: 0.9rem;
+        }
+
+        .users-list {
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+        }
+
+        .user-card {
+          display: flex;
+          align-items: flex-start;
+          gap: 1.5rem;
+          background: white;
+          border-radius: 12px;
+          padding: 1.5rem;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+          border: 1px solid #e5e7eb;
+          transition: all 0.3s ease;
+        }
+
+        .user-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .user-avatar {
+          flex-shrink: 0;
+        }
+
+        .avatar-image {
+          width: 60px;
+          height: 60px;
+          border-radius: 50%;
+          object-fit: cover;
+          border: 3px solid #e5e7eb;
+        }
+
+        .avatar-placeholder {
+          width: 60px;
+          height: 60px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-size: 1.5rem;
+          font-weight: 700;
+          border: 3px solid #e5e7eb;
+        }
+
+        .user-info {
+          flex: 1;
+        }
+
+        .user-main {
+          margin-bottom: 1rem;
+        }
+
+        .user-name {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          margin: 0 0 0.5rem 0;
+          color: #1f2937;
+          font-size: 1.3rem;
+          font-weight: 700;
+        }
+
+        .user-role {
+          font-size: 0.7rem;
+          padding: 0.2rem 0.6rem;
+          border-radius: 12px;
+          font-weight: 600;
+        }
+
+        .user-role.user {
+          background: rgba(59, 130, 246, 0.1);
+          color: #3b82f6;
+          border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .user-username {
+          color: #6b7280;
+          font-size: 0.9rem;
+          margin: 0;
+        }
+
+        .user-details {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
+        .user-detail {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        .detail-label {
+          color: #6b7280;
+          font-size: 0.8rem;
+          font-weight: 600;
+          min-width: 160px;
+        }
+
+        .detail-value {
+          color: #1f2937;
+          font-size: 0.9rem;
+          font-weight: 500;
+        }
+/* Единый стиль для всех действий с цветовой семантикой */
+.user-actions .btn {
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  min-width: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Основное действие — Excel */
+.user-actions .btn-excel {
+  background: var(--primary);
+  color: white;
+}
+
+.user-actions .btn-excel:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Дополнительное действие — PDF */
+.user-actions .btn-pdf {
+  background: var(--secondary);
+  color: white;
+}
+
+.user-actions .btn-pdf:hover {
+  background: #7c3aed; /* немного темнее #8b5cf6 */
+  transform: translateY(-1px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Опасное/второстепенное действие — Удалить */
+.user-actions .btn-delete {
+  background: var(--text-secondary);
+  color: white;
+}
+
+.user-actions .btn-delete:hover {
+  background: #4b5563; /* темнее --text-secondary */
+  transform: translateY(-1px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+        .export-buttons {
+          display: flex;
+          gap: 0.5rem;
+        }
+
+        .btn-excel,
+        .btn-pdf,
+        .btn-delete {
+          padding: 0.6rem 1rem;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 0.8rem;
+          font-weight: 600;
+          transition: all 0.3s ease;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          min-width: 80px;
+        }
+
+        .btn-excel {
+          background: #10b981;
+          color: white;
+        }
+
+        .btn-excel:hover {
+          background: #059669;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-pdf {
+          background: #ef4444;
+          color: white;
+        }
+
+        .btn-pdf:hover {
+          background: #dc2626;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-delete {
+          background: #6b7280;
+          color: white;
+        }
+
+        .btn-delete:hover {
+          background: #4b5563;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .no-data {
+          text-align: center;
+          padding: 3rem 2rem;
+          background: #f8fafc;
+          border-radius: 12px;
+          border: 1px solid #e5e7eb;
+        }
+
+        .no-data p {
+          margin: 0 0 0.5rem 0;
+          color: #6b7280;
+          font-size: 1.1rem;
+        }
+
+        .no-data-subtitle {
+          font-size: 0.9rem;
+          color: #9ca3af;
+          margin: 0;
+        }
+
+        .loading-container {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          padding: 3rem 2rem;
+          background: white;
+          border-radius: 12px;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+          border: 1px solid #e5e7eb;
+        }
+
+        .loading {
+          color: #3b82f6;
+          font-size: 1.1rem;
+          font-weight: 600;
+        }
+
+        .error-container {
+          text-align: center;
+          padding: 2rem;
+          background: white;
+          border-radius: 12px;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+          border: 1px solid #e5e7eb;
+        }
+
+        .error-message {
+          color: #1f2937;
+          font-size: 1.1rem;
+          margin-bottom: 1rem;
+          font-weight: 600;
+        }
+
+        .btn-retry {
+          background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+          color: white;
+          border: none;
+          padding: 0.75rem 1.5rem;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 0.9rem;
+          font-weight: 600;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-retry:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 768px) {
+          .user-management {
+            padding: 1rem;
+          }
+
+          .admin-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: flex-start;
+          }
+
+          .admin-header h1 {
+            font-size: 1.6rem;
+          }
+
+          .header-actions {
+            width: 100%;
+            justify-content: space-between;
+          }
+
+          .user-card {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 1rem;
+          }
+
+          .user-avatar {
+            align-self: flex-start;
+          }
+
+          .user-actions {
+            flex-direction: row;
+            justify-content: flex-end;
+          }
+
+          .export-buttons {
+            flex: 1;
+          }
+
+          .user-detail {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.25rem;
+          }
+
+          .detail-label {
+            min-width: auto;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .header-actions {
+            flex-direction: column;
+            gap: 0.5rem;
+          }
+
+          .btn-export-all,
+          .btn-refresh {
+            width: 100%;
+            justify-content: center;
+          }
+
+          .user-actions {
+            flex-direction: column;
+          }
+
+          .export-buttons {
+            justify-content: space-between;
+          }
+        }

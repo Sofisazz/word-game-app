@@ -1,0 +1,533 @@
+.sets-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.sets-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.sets-header h1 {
+  color: #1a1a1a;
+  font-size: 2.25rem;
+  margin-bottom: 0.75rem;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+}
+
+.sets-header p {
+  color: #666;
+  font-size: 1.1rem;
+  margin: 0;
+  font-weight: 400;
+}
+
+.sets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.set-card {
+  background: #fafafa;
+  border-radius: 12px;
+  padding: 0;
+  border: 1px solid #eaeaea;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  position: relative;
+}
+
+.set-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #eaeaea, transparent);
+}
+
+.set-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  border-color: #d4d4d4;
+}
+
+.set-content {
+  padding: 1.75rem;
+}
+
+.set-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.set-header h3 {
+  color: #1a1a1a;
+  font-size: 1.375rem;
+  font-weight: 500;
+  margin: 0;
+  flex: 1;
+  line-height: 1.4;
+}
+
+.word-count-badge {
+  background: #2a2a2a;
+  color: white;
+  padding: 0.35rem 0.7rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  min-width: 40px;
+  text-align: center;
+}
+
+.set-description {
+  color: #555;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+}
+
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #eaeaea, transparent);
+  margin: 1.5rem 0;
+}
+
+.games-section h4 {
+  color: #333;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.games-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.game-link {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-decoration: none;
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  transition: all 0.25s ease;
+  background: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.game-link::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.game-link:hover {
+  text-decoration: none;
+  transform: translateX(4px);
+  border-color: currentColor;
+}
+
+.game-link:hover::before {
+  opacity: 1;
+}
+
+/* Цветовые схемы для игр */
+.game-link.choice {
+  color: #7c3aed;
+}
+
+.game-link.choice:hover {
+  background: #faf5ff;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.1);
+}
+
+.game-link.typing {
+  color: #059669;
+}
+
+.game-link.typing:hover {
+  background: #f0fdf4;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.1);
+}
+
+.game-link.listening {
+  color: #dc2626;
+}
+
+.game-link.listening:hover {
+  background: #fef2f2;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.1);
+}
+
+.game-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.game-name {
+  font-weight: 500;
+  color: #1a1a1a;
+  font-size: 0.95rem;
+}
+
+.game-desc {
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.difficulty {
+  padding: 0.3rem 0.7rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.difficulty.easy {
+  background: #f0fdf4;
+  color: #059669;
+  border: 1px solid #bbf7d0;
+}
+
+.difficulty.medium {
+  background: #fffbeb;
+  color: #d97706;
+  border: 1px solid #fed7aa;
+}
+
+.difficulty.hard {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.loading,
+.error {
+  text-align: center;
+  padding: 3rem;
+  font-size: 1.1rem;
+  color: #666;
+}
+
+.error {
+  color: #dc2626;
+}
+
+.no-sets {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #666;
+}
+
+.no-sets h3 {
+  color: #333;
+  margin-bottom: 1rem;
+  font-weight: 400;
+}
+
+/* WordSetList.css - добавьте эти стили */
+
+/* Модальное окно */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  padding: 0;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #eaeaea;
+  display: flex;
+  justify-content: between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  margin: 0;
+  flex: 1;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.modal-footer {
+  padding: 1.5rem;
+  border-top: 1px solid #eaeaea;
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+/* Выбор количества слов */
+.word-count-selector {
+  margin-bottom: 1.5rem;
+}
+
+.word-count-selector label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.word-count-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.word-count-slider {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: #ddd;
+  outline: none;
+}
+
+.word-count-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #4caf50;
+  cursor: pointer;
+}
+
+.word-count-display {
+  text-align: center;
+  min-width: 80px;
+}
+
+.word-count-display .count {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #4caf50;
+}
+
+.word-count-display .label {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.word-count-presets {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.preset-btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.preset-btn.active {
+  background: #4caf50;
+  color: white;
+  border-color: #4caf50;
+}
+
+.preset-btn:hover {
+  border-color: #4caf50;
+}
+
+.game-info-preview {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+.game-info-preview p {
+  margin: 0.25rem 0;
+}
+
+/* Обновленные стили для кнопок игр */
+.game-link {
+  width: 100%;
+  text-align: left;
+  padding: 1rem;
+  border: 1px solid #eaeaea;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.game-link:hover {
+  border-color: #4caf50;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.game-settings-info {
+  background: #e8f5e8;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  color: #2e7d32;
+  margin-top: 0.5rem;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .sets-container {
+    padding: 1rem;
+  }
+
+  .sets-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .set-content {
+    padding: 1.5rem;
+  }
+
+  .set-header {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .word-count-badge {
+    align-self: flex-start;
+  }
+
+  .game-link {
+    padding: 0.875rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .sets-header h1 {
+    font-size: 1.75rem;
+  }
+
+  .set-content {
+    padding: 1.25rem;
+  }
+
+  .games-list {
+    gap: 0.5rem;
+  }
+} /* Добавьте в ваш CSS файл */
+.xp-earned {
+  margin: 1rem 0;
+  text-align: center;
+}
+
+.xp-badge {
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 1.1rem;
+  display: inline-block;
+}
+
+.game-not-started {
+  text-align: center;
+  padding: 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin: 2rem auto;
+  max-width: 500px;
+}
+
+.game-not-started h2 {
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.game-not-started p {
+  color: #888;
+  margin-bottom: 2rem;
+}
+/* Добавьте в ваш CSS файл */
+.game-timer {
+  background: #f8f9fa;
+  border: 2px solid #007bff;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #007bff;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.time-spent {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #28a745;
+  margin: 10px 0;
+}
+
+.game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
