@@ -339,7 +339,7 @@ const startGame = () => {
           <h2>🎧 Игра завершена!</h2>
           <p className="score">Ваш результат: {score} из {gameWords.length}</p>
           <p>Процент правильных ответов: {Math.round((score / gameWords.length) * 100)}%</p>
-          <p className="time-spent">⏱️ Общее время прохождения: {formatTime(totalTime)}</p>
+          <p className="time-spent">Общее время прохождения: {formatTime(totalTime)}</p>
           {xpEarned > 0 && (
             <div className="xp-earned">
               <span className="xp-badge">+{xpEarned} XP</span>
@@ -392,7 +392,7 @@ const startGame = () => {
             Изучаем: {gameWords.length} слов
           </div>
           <div className="game-timer">
-            ⏱️ Время: {formatTime(currentTime)}
+            Время: {formatTime(currentTime)}
           </div>
         </div>
       </div>
@@ -412,7 +412,7 @@ const startGame = () => {
             className="btn btn-secondary"
             style={{ marginTop: '1rem' }}
           >
-            🔊 Произнести слово
+            Произнести слово
           </button>
         </div>
       </div>
