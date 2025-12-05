@@ -1488,3 +1488,92 @@ body {
   font-size: 1.2rem;
   color: #666;
 }
+/* Стили для бейджа в навигации */
+.practice-badge-inline {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: #ff4757;
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.practice-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin-right: 20px;
+}
+
+.practice-link:hover .practice-badge-inline {
+  animation: badge-pulse 1.5s infinite;
+}
+
+@keyframes badge-pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7);
+  }
+  70% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 8px rgba(255, 71, 87, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 71, 87, 0);
+  }
+}
+
+/* Стили для меню пользователя */
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+}
+
+.avatar-image.medium {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #4a90e2;
+}
+
+.user-greeting {
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .user-greeting {
+    display: none;
+  }
+  
+  .practice-link {
+    margin-right: 15px;
+  }
+  
+  .practice-badge-inline {
+    font-size: 10px;
+    min-width: 16px;
+    height: 16px;
+  }
+}
+
+.game-info-row {
+  display: flex;
+  flex-direction: row;
+  gap:235px
+}

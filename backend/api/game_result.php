@@ -1,5 +1,5 @@
 <?php
-// backend/api/user/save-game-result.php
+// backend/api/game_result.php
 
 header('Access-Control-Allow-Origin: http://localhost:3000');
 header('Access-Control-Allow-Credentials: true');
@@ -11,9 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
-require_once __DIR__ . '/../../config.php';
-require_once __DIR__ . '/../../config/database.php';
-require_once __DIR__ . '/../auth.php';
+require_once __DIR__ . '/../config/database.php';
 
 // Включим логирование
 error_log("=== SAVE GAME RESULT START ===");
@@ -41,7 +39,7 @@ if (!isset($input['user_id']) || !isset($input['correct_answers'])) {
 $user_id = (int)$input['user_id'];
 $game_type = $input['game_type'] ?? 'unknown';
 $correct_answers = (int)$input['correct_answers'];
-$total_questions = (int)$input['total_questions'];
+$total_questions = (int)($input['total_questions'] ?? 5);
 $time_spent = (int)($input['time_spent'] ?? 0);
 $words_learned = (int)($input['words_learned'] ?? $correct_answers);
 
@@ -59,14 +57,14 @@ try {
 
     // 1. Сохраняем в game_results
     $stmt = $pdo->prepare("
-        INSERT INTO game_results (user_id, game_type, score, total_questions, correct_answers, words_learned, time_spent, xp_earned, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
+        INSERT INTO game_results (user_id, game_type, score, total_questions, correct_answers, words_learned, time_spent, xp_earned)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     ");
     
     $result = $stmt->execute([
         $user_id, 
         $game_type, 
-        $correct_answers, // score
+        $correct_answers,
         $total_questions, 
         $correct_answers, 
         $words_learned, 
@@ -79,58 +77,158 @@ try {
         $game_result_id = $pdo->lastInsertId();
         error_log("Game result ID: $game_result_id");
     } else {
-        error_log("Failed to insert into game_results");
-        throw new Exception("Failed to save game result");
+        $errorInfo = $stmt->errorInfo();
+        error_log("Failed to insert into game_results: " . print_r($errorInfo, true));
+        throw new Exception("Failed to save game result: " . $errorInfo[2]);
     }
 
     // 2. Обновляем или создаем запись в user_stats
-    $stmt = $pdo->prepare("
-        INSERT INTO user_stats (user_id, total_games_played, total_correct_answers, total_xp, level)
-        VALUES (?, 1, ?, ?, 1)
-        ON DUPLICATE KEY UPDATE
-            total_games_played = total_games_played + 1,
-            total_correct_answers = total_correct_answers + ?,
-            total_xp = total_xp + ?,
-            level = FLOOR((total_xp + ?) / 100) + 1
-    ");
-    
-    $result = $stmt->execute([
-        $user_id, 
-        $correct_answers, 
-        $xp_earned,
-        $correct_answers,
-        $xp_earned,
-        $xp_earned
-    ]);
+    // Проверим, существует ли запись для пользователя
+    $checkStmt = $pdo->prepare("SELECT COUNT(*) FROM user_stats WHERE user_id = ?");
+    $checkStmt->execute([$user_id]);
+    $userStatsExists = $checkStmt->fetchColumn() > 0;
+
+    if ($userStatsExists) {
+        // Обновляем существующую запись
+        $stmt = $pdo->prepare("
+            UPDATE user_stats 
+            SET total_games_played = total_games_played + 1,
+                total_correct_answers = total_correct_answers + ?,  -- Используем правильное имя поля с опечаткой
+                total_xp = total_xp + ?,                            -- В таблице это total_xp
+                total_words_learned = total_words_learned + ?,    -- В таблице total_words_learned
+                level = FLOOR((total_xp + ?) / 100) + 1,
+                updated_at = NOW()
+            WHERE user_id = ?
+        ");
+        
+        $result = $stmt->execute([
+            $correct_answers,
+            $xp_earned,
+            $words_learned,
+            $xp_earned,
+            $user_id
+        ]);
+    } else {
+        // Создаем новую запись
+        $stmt = $pdo->prepare("
+            INSERT INTO user_stats (
+                user_id, 
+                total_games_played, 
+                total_correct_answers,   -- Используем правильное имя поля с опечаткой
+                total_xp,                -- В таблице это total_xp
+                level, 
+                total_words_learned,    -- В таблице total_words_learned
+                current_stress, 
+                key_stream, 
+                perfect_games,
+                created_at, 
+                updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, 0, 0, 0, NOW(), NOW())
+        ");
+        
+        $result = $stmt->execute([
+            $user_id, 
+            1, // total_games_played
+            $correct_answers, // total_correct_answers
+            $xp_earned, // total_xp
+            1, // level
+            $words_learned // total_words_learned
+        ]);
+    }
 
     if ($result) {
         error_log("Successfully updated user_stats");
     } else {
-        error_log("Failed to update user_stats");
+        $errorInfo = $stmt->errorInfo();
+        error_log("Failed to update user_stats: " . print_r($errorInfo, true));
+        // Не прерываем выполнение, только логируем ошибку
     }
 
-    // 3. Обновляем прогресс по словам
+    // 3. Обновляем прогресс по словам и сохраняем неправильные ответы
     if (isset($input['results']) && is_array($input['results'])) {
-        error_log("Updating word progress for " . count($input['results']) . " words");
+        error_log("Processing word results: " . count($input['results']) . " words");
+        
+        $correct_count = 0;
+        $incorrect_count = 0;
+        
         foreach ($input['results'] as $index => $result) {
-            if (isset($result['word_id'])) {
-                $times_correct = $result['is_correct'] ? 1 : 0;
-                $stmt = $pdo->prepare("
-                    INSERT INTO word_progress (user_id, word_id, times_correct, last_practiced)
-                    VALUES (?, ?, ?, NOW())
-                    ON DUPLICATE KEY UPDATE
-                        times_correct = times_correct + VALUES(times_correct),
-                        last_practiced = NOW()
-                ");
-                $word_result = $stmt->execute([$user_id, $result['word_id'], $times_correct]);
+            if (isset($result['word_id']) && isset($result['is_correct'])) {
+                $word_id = (int)$result['word_id'];
+                $is_correct = (bool)$result['is_correct'];
                 
-                if ($word_result) {
-                    error_log("Updated word progress for word_id: " . $result['word_id']);
+                if ($is_correct) {
+                    $correct_count++;
+                    error_log("Correct answer for word_id: " . $word_id);
+                    
+                    // Обновляем word_progress для правильных ответов
+                    try {
+                        $updateStmt = $pdo->prepare("
+                            INSERT INTO word_progress (user_id, word_id, times_scored, times_bcorrect, last_reviewed)
+                            VALUES (?, ?, 1, 1, NOW())
+                            ON DUPLICATE KEY UPDATE
+                                times_scored = times_scored + 1,
+                                times_bcorrect = times_bcorrect + 1,
+                                last_reviewed = NOW()
+                        ");
+                        $updateStmt->execute([$user_id, $word_id]);
+                    } catch (Exception $e) {
+                        error_log("Error updating word_progress for correct answer: " . $e->getMessage());
+                    }
+                    
                 } else {
-                    error_log("Failed to update word progress for word_id: " . $result['word_id']);
+                    $incorrect_count++;
+                    error_log("Incorrect answer for word_id: " . $word_id);
+                    
+                    // Сохраняем неправильный ответ в таблицу wrong_answers
+                    try {
+                        // Проверяем, есть ли уже запись для этого слова
+                        $checkWrong = $pdo->prepare("
+                            SELECT id, mistakes FROM wrong_answers 
+                            WHERE user_id = ? AND word_id = ?
+                        ");
+                        $checkWrong->execute([$user_id, $word_id]);
+                        
+                        if ($row = $checkWrong->fetch(PDO::FETCH_ASSOC)) {
+                            // Обновляем существующую запись
+                            $new_mistakes = $row['mistakes'] + 1;
+                            $updateWrong = $pdo->prepare("
+                                UPDATE wrong_answers 
+                                SET mistakes = ?, 
+                                    last_practice = NOW()
+                                WHERE id = ?
+                            ");
+                            $updateWrong->execute([$new_mistakes, $row['id']]);
+                            error_log("Updated wrong_answers for word_id: " . $word_id . ", new mistakes: " . $new_mistakes);
+                        } else {
+                            // Создаем новую запись
+                            $insertWrong = $pdo->prepare("
+                                INSERT INTO wrong_answers (user_id, word_id, mistakes, created_at, last_practice)
+                                VALUES (?, ?, 1, NOW(), NOW())
+                            ");
+                            $insertWrong->execute([$user_id, $word_id]);
+                            error_log("Created wrong_answers record for word_id: " . $word_id);
+                        }
+                        
+                        // Также обновляем word_progress для неправильных ответов
+                        $updateStmt = $pdo->prepare("
+                            INSERT INTO word_progress (user_id, word_id, times_scored, times_bcorrect, last_reviewed)
+                            VALUES (?, ?, 1, 0, NOW())
+                            ON DUPLICATE KEY UPDATE
+                                times_scored = times_scored + 1,
+                                last_reviewed = NOW()
+                        ");
+                        $updateStmt->execute([$user_id, $word_id]);
+                        
+                    } catch (Exception $e) {
+                        error_log("Error saving wrong answer: " . $e->getMessage());
+                        // Не прерываем выполнение, продолжаем со следующими словами
+                    }
                 }
             }
         }
+        
+        error_log("Total correct: $correct_count, Total incorrect: $incorrect_count");
+        
     } else {
         error_log("No word results provided");
     }
@@ -138,11 +236,25 @@ try {
     $pdo->commit();
     error_log("Transaction committed successfully");
 
+    // Получаем обновленные данные пользователя
+    $stmt = $pdo->prepare("SELECT * FROM user_stats WHERE user_id = ?");
+    $stmt->execute([$user_id]);
+    $user_stats = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    // Получаем количество слов в wrong_answers для отладки
+    $wrongCountStmt = $pdo->prepare("SELECT COUNT(*) as wrong_count FROM wrong_answers WHERE user_id = ?");
+    $wrongCountStmt->execute([$user_id]);
+    $wrong_count = $wrongCountStmt->fetch(PDO::FETCH_ASSOC)['wrong_count'];
+    
+    error_log("Total wrong words in database for user $user_id: $wrong_count");
+
     echo json_encode([
         'success' => true,
         'message' => 'Результат сохранён',
         'xp_earned' => $xp_earned,
-        'correct_answers' => $correct_answers
+        'correct_answers' => $correct_answers,
+        'wrong_count' => $wrong_count, // Добавляем для отладки
+        'user_stats' => $user_stats
     ]);
 
 } catch (Exception $e) {

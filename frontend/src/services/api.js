@@ -98,4 +98,14 @@ deleteUser: (userId) => {
   getUserActivity: (days = 7) => api.get(`/admin/user_activity.php?days=${days}`)
 };
 
+export const wrongWordsAPI = {
+  getUserWrongWords: () => api.get('/wrong_words.php'),
+  addWrongWord: (wordId) => api.post('/wrong_words.php', { word_id: wordId }),
+  deleteWrongWord: (wrongWordId) => api.delete(`/wrong_words.php/${wrongWordId}`),
+  updateWrongWord: (wrongWordId, data) => api.put(`/wrong_words.php/${wrongWordId}`, data),
+  clearAllWrongWords: () => api.delete('/wrong_words.php/clear_all'),
+  checkWord: (wordId) => api.get(`/wrong_words.php/check/${wordId}`),
+ getWrongWordsCount: () => api.get('/wrong_words_count.php')
+};
+
 export default api;

@@ -21,7 +21,7 @@ const TypingGame = () => {
   const [currentTime, setCurrentTime] = useState(0);
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [xpEarned, setXpEarned] = useState(0);
-  
+  const [wordResults, setWordResults] = useState([]);
   const startTimeRef = useRef(null);
   const timerRef = useRef(null);
 
@@ -71,80 +71,94 @@ const TypingGame = () => {
     }
   };
 
-  const startGame = () => {
-    const shuffledWords = [...words].sort(() => Math.random() - 0.5);
-    const selectedWords = shuffledWords.slice(0, wordCount);
-    setGameWords(selectedWords);
-    setShowWordModal(false);
-    setCurrentWordIndex(0);
-    setScore(0);
-    setIsFinished(false);
-    setUserInput('');
+const startGame = () => {
+  const shuffledWords = [...words].sort(() => Math.random() - 0.5);
+  const selectedWords = shuffledWords.slice(0, wordCount);
+  setGameWords(selectedWords);
+  setShowWordModal(false);
+  setCurrentWordIndex(0);
+  setScore(0);
+  setIsFinished(false);
+  setUserInput('');
+  setMessage('');
+  setCorrectAnswers(0);
+  setXpEarned(0);
+  setTotalTime(0);
+  setCurrentTime(0);
+  setWordResults([]); // Добавьте это
+  startTimeRef.current = null;
+};
+  // В handleSubmit
+const handleSubmit = (e) => {
+  e.preventDefault();
+  
+  const currentWord = gameWords[currentWordIndex];
+  const isCorrect = userInput.trim().toLowerCase() === currentWord.translation.toLowerCase();
+  
+  if (isCorrect) {
+    setScore(score + 1);
+    setCorrectAnswers(correctAnswers + 1);
+    setMessage('Правильно! ✅');
+  } else {
+    setMessage(`Неправильно! Правильный ответ: ${currentWord.translation}`);
+  }
+
+  // Сохраняем результат для этого слова
+  const wordResult = {
+    word_id: currentWord.id,
+    is_correct: isCorrect
+  };
+  
+  setWordResults(prev => [...prev, wordResult]);
+
+  setUserInput('');
+  setTimeout(() => {
     setMessage('');
-    setCorrectAnswers(0);
-    setXpEarned(0);
-    setTotalTime(0);
-    setCurrentTime(0);
-    startTimeRef.current = null;
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
     
-    const currentWord = gameWords[currentWordIndex];
-    const isCorrect = userInput.trim().toLowerCase() === currentWord.translation.toLowerCase();
-    
-    if (isCorrect) {
-      setScore(score + 1);
-      setCorrectAnswers(correctAnswers + 1);
-      setMessage('Правильно! ✅');
+    if (currentWordIndex < gameWords.length - 1) {
+      setCurrentWordIndex(currentWordIndex + 1);
     } else {
-      setMessage(`Неправильно! Правильный ответ: ${currentWord.translation}`);
+      const timeSpent = currentTime;
+      setTotalTime(timeSpent);
+      stopTimer();
+      saveGameResults(timeSpent);
+      setIsFinished(true);
+    }
+  }, 1500);
+};
+
+// В saveGameResults
+const saveGameResults = async (timeSpent) => {
+  try {
+    const userData = sessionStorage.getItem('user');
+    const user = userData ? JSON.parse(userData) : null;
+    
+    if (!user) {
+      console.error('❌ No user found in sessionStorage');
+      return;
     }
 
-    setUserInput('');
-    setTimeout(() => {
-      setMessage('');
-      
-      if (currentWordIndex < gameWords.length - 1) {
-        setCurrentWordIndex(currentWordIndex + 1);
-      } else {
-        const timeSpent = currentTime;
-        setTotalTime(timeSpent);
-        stopTimer();
-        saveGameResults(timeSpent);
-        setIsFinished(true);
-      }
-    }, 1500);
-  };
+    const gameData = {
+      user_id: user.id,
+      game_type: 'typing',
+      score: score,
+      total_questions: gameWords.length,
+      correct_answers: correctAnswers,
+      words_learned: correctAnswers,
+      time_spent: timeSpent,
+      results: wordResults // Добавьте это
+    };
 
-  const saveGameResults = async (timeSpent) => {
-    try {
-      const user = JSON.parse(localStorage.getItem('user'));
-      if (!user) return;
-
-      const gameData = {
-        user_id: user.id,
-        game_type: 'typing',
-        score: score,
-        total_questions: gameWords.length,
-        correct_answers: correctAnswers,
-        words_learned: correctAnswers,
-        time_spent: timeSpent
-      };
-
-      const response = await userAPI.saveGameResult(gameData);
-      
-      if (response.data.success) {
-        setXpEarned(response.data.xp_earned || 0);
-        console.log('Game results saved successfully! XP earned:', response.data.xp_earned);
-      } else {
-        console.error('Failed to save game results:', response.data.message);
-      }
-    } catch (err) {
-      console.error('Error saving game results:', err);
+    const response = await userAPI.saveGameResult(gameData);
+    
+    if (response.data.success) {
+      setXpEarned(response.data.xp_earned || 0);
+      console.log('✅ Game results saved successfully! XP earned:', response.data.xp_earned);
     }
-  };
+  } catch (err) {
+    console.error('💥 Error saving game results:', err);
+  }
+};
 
   const handleCloseModal = () => {
     setShowWordModal(false);

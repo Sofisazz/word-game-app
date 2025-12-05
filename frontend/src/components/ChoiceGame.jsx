@@ -21,6 +21,7 @@ const ChoiceGame = () => {
   const [currentTime, setCurrentTime] = useState(0);
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [xpEarned, setXpEarned] = useState(0);
+  const [wordResults, setWordResults] = useState([]); // ДОБАВЬТЕ ЭТО
   
   const startTimeRef = useRef(null);
   const timerRef = useRef(null);
@@ -91,6 +92,7 @@ const ChoiceGame = () => {
     setXpEarned(0);
     setTotalTime(0);
     setCurrentTime(0);
+    setWordResults([]); // Сбрасываем результаты при старте новой игры
     startTimeRef.current = null;
   };
 
@@ -119,6 +121,16 @@ const ChoiceGame = () => {
       setCorrectAnswers(correctAnswers + 1);
     }
 
+    // Сохраняем результат для этого слова
+    const wordResult = {
+      word_id: currentWord.id,
+      is_correct: isCorrect
+    };
+    
+    // Добавляем в массив результатов
+    setWordResults(prev => [...prev, wordResult]);
+    console.log(`Word result: ${currentWord.original_word} - ${isCorrect ? 'correct' : 'incorrect'}`);
+
     setTimeout(() => {
       setSelectedOption(null);
       
@@ -134,56 +146,53 @@ const ChoiceGame = () => {
     }, 1000);
   };
 
-// ChoiceGame.js - исправленная функция saveGameResults
-// ChoiceGame.js - исправленная функция saveGameResults
-const saveGameResults = async (timeSpent) => {
-  try {
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (!user) {
-      console.error('❌ No user found in localStorage');
-      return;
+  const saveGameResults = async (timeSpent) => {
+    try {
+      const userData = sessionStorage.getItem('user');
+      const user = userData ? JSON.parse(userData) : null;
+      
+      if (!user) {
+        console.error('❌ No user found in sessionStorage');
+        return;
+      }
+
+      console.log('🎮 Saving game results for user:', user.id);
+      console.log('📊 Word results array:', wordResults);
+      
+      // Подсчитываем сколько неправильных ответов
+      const incorrectAnswers = wordResults.filter(r => !r.is_correct).length;
+      console.log('❌ Incorrect answers:', incorrectAnswers);
+
+      const gameData = {
+        user_id: user.id,
+        game_type: 'choice',
+        score: score,
+        total_questions: gameWords.length,
+        correct_answers: correctAnswers,
+        words_learned: correctAnswers,
+        time_spent: timeSpent,
+        results: wordResults // Отправляем массив результатов
+      };
+
+      console.log('📨 Sending game data to server:', gameData);
+
+      const response = await userAPI.saveGameResult(gameData);
+      
+      console.log('📬 Server response:', response);
+      console.log('📬 Response data:', response.data);
+      
+      if (response.data && response.data.success) {
+        setXpEarned(response.data.xp_earned || 0);
+        console.log('✅ Game results saved successfully! XP earned:', response.data.xp_earned);
+      } else {
+        console.error('❌ Failed to save game results:', response.data ? response.data.message : 'No response data');
+      }
+    } catch (err) {
+      console.error('💥 Error saving game results:', err);
+      console.error('💥 Error response:', err.response);
+      console.error('💥 Error message:', err.message);
     }
-
-    console.log('🎮 Saving game results for user:', user.id);
-    console.log('📊 Game stats:', {
-      score,
-      correctAnswers,
-      totalQuestions: gameWords.length,
-      timeSpent
-    });
-
-    const gameData = {
-      user_id: user.id,
-      game_type: 'choice',
-      score: score,
-      total_questions: gameWords.length,
-      correct_answers: correctAnswers,
-      words_learned: correctAnswers,
-      time_spent: timeSpent,
-      results: gameWords.map((word, index) => ({
-        word_id: word.id,
-        is_correct: index < correctAnswers
-      }))
-    };
-
-    console.log('📨 Sending game data to server:', gameData);
-
-    const response = await userAPI.saveGameResult(gameData);
-    
-    console.log('📬 Server response:', response.data);
-    
-    if (response.data.success) {
-      setXpEarned(response.data.xp_earned || 0);
-      console.log('✅ Game results saved successfully! XP earned:', response.data.xp_earned);
-    } else {
-      console.error('❌ Failed to save game results:', response.data.message);
-    }
-  } catch (err) {
-    console.error('💥 Error saving game results:', err);
-    console.error('Error details:', err.response?.data);
-  }
-};
-
+  };
 
   const getButtonClass = (option) => {
     if (selectedOption === null) return 'option-button';
@@ -209,6 +218,7 @@ const saveGameResults = async (timeSpent) => {
     setSelectedOption(null);
     setTotalTime(0);
     setCurrentTime(0);
+    setWordResults([]); // Сбрасываем результаты
     stopTimer();
     startTimeRef.current = null;
   };
@@ -389,7 +399,7 @@ const saveGameResults = async (timeSpent) => {
             Изучаем: {gameWords.length} слов
           </div>
           <div className="game-timer">
-            ⏱️ Время: {formatTime(currentTime)}
+            Время: {formatTime(currentTime)}
           </div>
         </div>
       </div>

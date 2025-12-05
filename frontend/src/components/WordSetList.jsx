@@ -38,7 +38,7 @@ const WordSetList = () => {
   };
 
   const getMaxWords = (set) => {
-    return Math.min(set.word_count, 50); // Максимум 50 слов за игру
+    return Math.min(set.word_count, 50);
   };
 
   if (loading) return <div className="loading">Загрузка наборов слов...</div>;

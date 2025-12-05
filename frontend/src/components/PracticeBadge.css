@@ -1,0 +1,84 @@
+.practice-badge-container {
+  position: relative;
+  display: inline-block;
+  margin-left: 8px;
+}
+
+.practice-badge {
+  background-color: #ff4757;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  animation: badge-pulse 2s infinite;
+}
+
+@keyframes badge-pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7);
+  }
+  70% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 6px rgba(255, 71, 87, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 71, 87, 0);
+  }
+}
+
+.practice-tooltip {
+  visibility: hidden;
+  position: absolute;
+  z-index: 1000;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #333;
+  color: white;
+  text-align: center;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.practice-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #333 transparent transparent transparent;
+}
+
+.practice-badge-container:hover .practice-tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Для больших чисел */
+.practice-badge.small {
+  font-size: 11px;
+  min-width: 18px;
+  height: 18px;
+}
+
+.practice-badge.large {
+  font-size: 14px;
+  min-width: 24px;
+  height: 24px;
+}

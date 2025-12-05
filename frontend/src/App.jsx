@@ -19,6 +19,7 @@ import TypingGamePage from './components/TypingGamePage';
 import ListeningGamePage from './components/ListeningGamePage';
 import AchievementsPage from './components/AchievementsPage';
 import AdminPanel from './components/AdminPanel';
+import PracticeWrongWords from './components/PracticeWrongWords';
 import './App.css';
 
 function App() {
@@ -31,7 +32,7 @@ function App() {
 
   const checkSession = async () => {
     try {
-   const savedUser = sessionStorage.getItem('user');
+      const savedUser = sessionStorage.getItem('user');
       if (savedUser) {
         const userData = JSON.parse(savedUser);
         setUser(userData);
@@ -47,6 +48,7 @@ function App() {
       setLoading(false);
     }
   };
+
   const handleLogin = async (userData) => {
     try {
       console.log('🔄 Processing login for:', userData);
@@ -101,7 +103,7 @@ function App() {
 
   const handleLogout = async () => {
     try {
- await authAPI.logout();
+      await authAPI.logout();
     } catch (error) {
       console.error('Error during logout:', error);
     } finally {
@@ -135,7 +137,6 @@ function App() {
             } 
           />
 
-       
           <Route path="/*" element={
             <MainLayout user={user} onLogout={handleLogout}>
               <Routes>
@@ -144,6 +145,12 @@ function App() {
                   path="/achievements" 
                   element={
                     user ? <AchievementsPage /> : <Navigate to="/login" replace />
+                  } 
+                />
+                <Route 
+                  path="/practice" 
+                  element={
+                    user ? <PracticeWrongWords /> : <Navigate to="/login" replace />
                   } 
                 />
                 <Route path="/sets" element={<WordSetList />} />

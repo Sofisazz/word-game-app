@@ -4,7 +4,6 @@ import { adminAPI } from '../services/api';
 import './UserManagement.css'
 // Импорты для экспорта
 import * as XLSX from 'xlsx';
-import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 
 const UserManagement = () => {
@@ -65,134 +64,6 @@ const deleteUser = async (userId, username) => {
   }
 };
 
-  const exportUserReport = async (user, format = 'excel') => {
-    try {
-      console.log(`Генерация отчета для пользователя ${user.id} в формате ${format}...`);
-      const response = await adminAPI.exportUserReport(user.id);
-      
-      const userData = response.data;
-      
-      if (format === 'excel') {
-        exportToExcel(userData, user);
-      } else if (format === 'pdf') {
-        exportToPDF(userData, user);
-      }
-      
-      console.log(`Отчет в формате ${format.toUpperCase()} успешно создан`);
-    } catch (error) {
-      console.error(`Ошибка генерации отчета:`, error);
-      alert('Ошибка при генерации отчета: ' + (error.response?.data?.error || error.message));
-    }
-  };
-
-  // Экспорт в Excel
-  const exportToExcel = (userData, user) => {
-    try {
-      const workbook = XLSX.utils.book_new();
-      
-      const userInfoData = [
-        ['Отчет по пользователю', ''],
-        ['Сгенерирован', userData.report_generated],
-        ['', ''],
-        ['Основная информация', ''],
-        ['ID пользователя', user.id],
-        ['Имя пользователя', user.username],
-        ['Email', user.email],
-        ['Роль', user.role],
-        ['Дата регистрации', formatDate(user.created_at)],
-        ['Последняя активность', formatLastActivity(user.last_activity)],
-        ['', ''],
-        ['Статистика', ''],
-        ['Всего игр', userData.statistics?.total_games_played || 0],
-        ['Правильные ответы', userData.statistics?.total_correct_answers || 0],
-        ['Опыт', userData.statistics?.total_xp || 0],
-        ['Уровень', userData.statistics?.level || 1],
-        ['Изучено слов', userData.learned_words || 0],
-        ['Достижения', userData.achievements_count || 0]
-      ];
-
-      const userInfoSheet = XLSX.utils.aoa_to_sheet(userInfoData);
-      XLSX.utils.book_append_sheet(workbook, userInfoSheet, 'Основная информация');
-
-      XLSX.writeFile(workbook, `user_report_${user.username}.xlsx`);
-    } catch (error) {
-      console.error('Ошибка создания Excel файла:', error);
-      alert('Ошибка при создании Excel файла: ' + error.message);
-    }
-  };
-
-  // Экспорт в PDF
-  const exportToPDF = (userData, user) => {
-    try {
-      const doc = new jsPDF();
-      
-      doc.setFontSize(16);
-      doc.setTextColor(40, 40, 40);
-      doc.text(`Отчет по пользователю: ${user.username}`, 14, 15);
-      
-      doc.setFontSize(10);
-      doc.setTextColor(100, 100, 100);
-      doc.text(`Сгенерирован: ${new Date(userData.report_generated).toLocaleString('ru-RU')}`, 14, 22);
-      
-      let yPosition = 35;
-
-      // Основная информация
-      doc.setFontSize(12);
-      doc.setTextColor(40, 40, 40);
-      doc.text('Основная информация:', 14, yPosition);
-      yPosition += 10;
-
-      const userInfo = [
-        ['ID пользователя', user.id.toString()],
-        ['Имя пользователя', user.username],
-        ['Email', user.email],
-        ['Роль', user.role],
-        ['Дата регистрации', formatDate(user.created_at)],
-        ['Последняя активность', formatLastActivity(user.last_activity)]
-      ];
-
-      // @ts-ignore
-      doc.autoTable({
-        startY: yPosition,
-        head: [['Параметр', 'Значение']],
-        body: userInfo,
-        theme: 'grid',
-        styles: { fontSize: 9 },
-        headStyles: { fillColor: [66, 139, 202] }
-      });
-
-      yPosition = doc.lastAutoTable.finalY + 10;
-
-      // Статистика
-      doc.setFontSize(12);
-      doc.text('Статистика:', 14, yPosition);
-      yPosition += 10;
-
-      const statsInfo = [
-        ['Всего игр', (userData.statistics?.total_games_played || 0).toString()],
-        ['Правильные ответы', (userData.statistics?.total_correct_answers || 0).toString()],
-        ['Опыт', (userData.statistics?.total_xp || 0).toString()],
-        ['Уровень', (userData.statistics?.level || 1).toString()],
-        ['Изучено слов', (userData.learned_words || 0).toString()],
-        ['Достижения', (userData.achievements_count || 0).toString()]
-      ];
-
-      // @ts-ignore
-      doc.autoTable({
-        startY: yPosition,
-        head: [['Параметр', 'Значение']],
-        body: statsInfo,
-        theme: 'grid',
-        styles: { fontSize: 9 },
-        headStyles: { fillColor: [92, 184, 92] }
-      });
-
-      doc.save(`user_report_${user.username}.pdf`);
-    } catch (error) {
-      console.error('Ошибка создания PDF файла:', error);
-      alert('Ошибка при создании PDF файла: ' + error.message);
-    }
-  };
 
   // Экспорт всех пользователей в Excel
   const exportAllUsers = () => {
@@ -228,6 +99,7 @@ const deleteUser = async (userId, username) => {
         year: 'numeric'
       });
     } catch (e) {
+      console.log(e);
       return dateString;
     }
   };
@@ -247,6 +119,7 @@ const deleteUser = async (userId, username) => {
       
       return formatDate(dateString);
     } catch (e) {
+      console.log(e);
       return dateString;
     }
   };

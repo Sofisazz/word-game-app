@@ -9,22 +9,22 @@ const ChoiceGamePage = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    const fetchSets = async () => {
+      try {
+        const response = await wordSetsAPI.getAll();
+        if (response.data.success) {
+          setSets(response.data.data);
+        }
+      } catch (err) {
+        setError('Ошибка при загрузке наборов слов');
+        console.error('Error fetching word sets:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchSets();
   }, []);
-
-  const fetchSets = async () => {
-    try {
-      const response = await wordSetsAPI.getAll();
-      if (response.data.success) {
-        setSets(response.data.data);
-      }
-    } catch (err) {
-      setError('Ошибка при загрузке наборов слов');
-      console.error('Error fetching word sets:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (loading) return <div className="loading">Загрузка наборов слов...</div>;
   if (error) return <div className="error">{error}</div>;
@@ -33,7 +33,7 @@ const ChoiceGamePage = () => {
     <div className="game-page">
       <div className="game-page-header">
         <div className="game-info">
-            <div className="game-details">
+          <div className="game-details">
             <h1>Выбор перевода</h1>
             <p>Выбирайте правильный перевод из предложенных вариантов</p>
             <div className="game-difficulty easy">Уровень: Начальный</div>
@@ -49,12 +49,11 @@ const ChoiceGamePage = () => {
                 <h3>{set.name}</h3>
                 <div className="word-count-badge">{set.word_count} слов</div>
               </div>
-              
               <p className="set-description">{set.description}</p>
-              
               <div className="game-actions">
+                {/* Передаём words=10 по умолчанию, или открываем модалку */}
                 <Link 
-                  to={`/game/choice/${set.id}`} 
+                  to={`/game/choice/${set.id}?words=10`} 
                   className="btn btn-primary btn-large"
                 >
                   Начать игру

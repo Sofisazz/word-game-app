@@ -1,6 +1,6 @@
 <?php
 require_once '../config/database.php';
-require_once '../cors.php';
+require_once '../config/cors.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     http_response_code(405);
