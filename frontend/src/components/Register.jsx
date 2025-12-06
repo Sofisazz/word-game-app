@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
-
+import './Register.css'
 const Register = ({ onRegister }) => {
   const [formData, setFormData] = useState({
     username: '',
@@ -19,11 +19,28 @@ const Register = ({ onRegister }) => {
   });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [shakingFields, setShakingFields] = useState({});
   const navigate = useNavigate();
+
+  // Функция для запуска анимации дрожания
+  const triggerShake = (fieldName) => {
+    // Устанавливаем флаг дрожания
+    setShakingFields(prev => ({
+      ...prev,
+      [fieldName]: true
+    }));
+    
+    // Через 500ms убираем флаг дрожания (длина анимации)
+    setTimeout(() => {
+      setShakingFields(prev => ({
+        ...prev,
+        [fieldName]: false
+      }));
+    }, 500);
+  };
 
   // Функции валидации
   const validateUsername = (username, forceValidation = false) => {
-    // Если поле не было затронуто и форму не отправляли - не валидируем
     if (!forceValidation && !touched.username && !submitted) return '';
     if (!username.trim()) return 'Имя пользователя обязательно';
     
@@ -101,6 +118,13 @@ const Register = ({ onRegister }) => {
     
     setErrors(newErrors);
     
+    // Запускаем анимацию дрожания для полей с ошибками
+    Object.keys(newErrors).forEach(fieldName => {
+      if (newErrors[fieldName]) {
+        triggerShake(fieldName);
+      }
+    });
+    
     return !Object.values(newErrors).some(error => error !== '');
   };
 
@@ -171,12 +195,12 @@ const Register = ({ onRegister }) => {
     e.preventDefault();
     setSubmitted(true);
     
-    // Проверяем все поля перед отправкой (теперь всегда с forceValidation = true)
+    // Проверяем все поля перед отправкой
     if (!validateForm()) {
-      setErrors({
-        ...errors,
+      setErrors(prev => ({
+        ...prev,
         form: 'Пожалуйста, исправьте ошибки в форме'
-      });
+      }));
       return;
     }
     
@@ -223,9 +247,30 @@ const Register = ({ onRegister }) => {
         }
       } else {
         console.warn('❌ Сервер не подтвердил успешность регистрации');
-        setErrors({
-          form: registerData?.error || registerData?.message || 'Ошибка при регистрации'
-        });
+        
+        // Определяем, какое поле вызвало ошибку
+        let fieldToShake = null;
+        let errorMessage = registerData?.error || registerData?.message || 'Ошибка при регистрации';
+        
+        if (errorMessage.includes('email') || errorMessage.includes('почта')) {
+          fieldToShake = 'email';
+        } else if (errorMessage.includes('username') || errorMessage.includes('имя') || errorMessage.includes('логин')) {
+          fieldToShake = 'username';
+        } else if (errorMessage.includes('пароль') || errorMessage.includes('password')) {
+          fieldToShake = 'password';
+        }
+        
+        if (fieldToShake) {
+          triggerShake(fieldToShake);
+          setTouched(prev => ({ ...prev, [fieldToShake]: true }));
+          setErrors(prev => ({ 
+            ...prev, 
+            [fieldToShake]: errorMessage,
+            form: errorMessage 
+          }));
+        } else {
+          setErrors({ form: errorMessage });
+        }
       }
       
     } catch (error) {
@@ -233,13 +278,38 @@ const Register = ({ onRegister }) => {
       
       if (error.response) {
         if (error.response.status === 409) {
-          setErrors({
-            form: 'Пользователь с таким именем или email уже существует'
-          });
+          const errorMessage = 'Пользователь с таким именем или email уже существует';
+          
+          // Пытаемся определить, что именно занято
+          if (error.response.data?.error?.includes('email')) {
+            triggerShake('email');
+            setTouched(prev => ({ ...prev, email: true }));
+            setErrors({ 
+              email: errorMessage,
+              form: errorMessage 
+            });
+          } else if (error.response.data?.error?.includes('username')) {
+            triggerShake('username');
+            setTouched(prev => ({ ...prev, username: true }));
+            setErrors({ 
+              username: errorMessage,
+              form: errorMessage 
+            });
+          } else {
+            // Если непонятно что именно - дрожим оба поля
+            triggerShake('username');
+            triggerShake('email');
+            setTouched(prev => ({ 
+              ...prev, 
+              username: true,
+              email: true 
+            }));
+            setErrors({ form: errorMessage });
+          }
+          
         } else if (error.response.status === 400) {
-          setErrors({
-            form: 'Некорректные данные: ' + (error.response.data?.error || '')
-          });
+          const errorMessage = 'Некорректные данные: ' + (error.response.data?.error || '');
+          setErrors({ form: errorMessage });
         } else {
           setErrors({
             form: error.response.data?.error || `Ошибка ${error.response.status}`
@@ -262,7 +332,17 @@ const Register = ({ onRegister }) => {
   // Получаем класс для поля ввода
   const getInputClassName = (fieldName) => {
     const hasError = errors[fieldName] && (touched[fieldName] || submitted);
-    return hasError ? 'error-input' : '';
+    const isShaking = shakingFields[fieldName];
+    
+    let className = '';
+    if (hasError) {
+      className = 'error-input';
+    }
+    if (isShaking) {
+      className += ' shake-animation';
+    }
+    
+    return className.trim();
   };
 
   return (
@@ -345,10 +425,18 @@ const Register = ({ onRegister }) => {
           </ul>
         </div>
         
-        {errors.form && <div className="error">{errors.form}</div>}
+        {errors.form && <div className="error-message form-error">{errors.form}</div>}
         
-        <button type="submit" className="btn btn-primary" disabled={loading}>
-          {loading ? 'Регистрация...' : 'Зарегистрироваться'}
+        <button 
+          type="submit" 
+          className="btn btn-primary" 
+          disabled={loading || (!formData.username.trim() || !formData.email.trim() || !formData.password.trim() || !formData.confirmPassword.trim())}
+        >
+          {loading ? (
+            <>
+              <span className="spinner"></span> Регистрация...
+            </>
+          ) : 'Зарегистрироваться'}
         </button>
       </form>
       <p style={{ marginTop: '1rem', textAlign: 'center' }}>

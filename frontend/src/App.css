@@ -1854,3 +1854,106 @@ background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
   font-size: 0.875rem;
   margin-top: 0.25rem;
 }
+
+
+.small-text {
+  font-size: 0.75rem;
+  color: #6c757d;
+  margin-top: 0.25rem;
+}
+.field-hint {
+  color: #28a745;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  font-style: italic;
+  transition: all 0.3s;
+}
+
+.field-hint.small-text {
+  color: #6c757d;
+  font-style: normal;
+}
+
+/* Стили для успешного и ошибочного состояния полей */
+.form-group input.error-input {
+  border-color: #dc3545;
+  background-color: rgba(220, 53, 69, 0.05);
+}
+/* ===== AUTHENTICATION STYLES ===== */
+/* ===== AUTH ERROR STYLES ===== */
+
+/* Общие стили для полей с ошибками - ВЫСОКИЙ ПРИОРИТЕТ */
+.form-group input.error-input {
+  border-color: var(--error) !important;
+  background-color: rgba(239, 68, 68, 0.1) !important;
+}
+
+.form-group input.password-error {
+  border-color: var(--error) !important;
+  border-width: 2px !important;
+  background-color: rgba(239, 68, 68, 0.1) !important;
+  animation: shake 0.5s ease-in-out;
+}
+
+/* При фокусе на поле с ошибкой */
+.form-group input.error-input:focus,
+.form-group input.password-error:focus {
+  border-color: var(--error) !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3) !important;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* Зеленый стиль только когда нет ошибок - ОЧЕНЬ СПЕЦИФИЧНЫЙ */
+.form-group input.valid-input:not(.error-input, .password-error) {
+  border-color: var(--success) !important;
+  background-color: rgba(16, 185, 129, 0.05) !important;
+}
+
+.form-group input.valid-input:not(.error-input, .password-error):focus {
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25) !important;
+}
+
+/* Сообщения об ошибках */
+.password-error-text {
+  color: var(--error);
+  font-weight: bold;
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.error-message {
+  color: var(--error);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  background-color: rgba(239, 68, 68, 0.05);
+  border-radius: 4px;
+  border-left: 3px solid var(--error);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Убираем подсказки при ошибке пароля */
+.form-group .field-hint.password-error ~ .field-hint {
+  display: none;
+}
+
+/* Стили для успешного входа */
+.success-message {
+  color: var(--success);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  padding: 0.5rem;
+  background-color: rgba(16, 185, 129, 0.1);
+  border-radius: 4px;
+  border-left: 3px solid var(--success);
+}

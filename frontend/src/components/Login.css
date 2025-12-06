@@ -1,0 +1,199 @@
+/* ===== LOGIN SPECIFIC STYLES ===== */
+
+/* Основные стили для логина */
+.auth-container {
+  max-width: 440px;
+  margin: 3rem auto;
+  padding: 2.5rem;
+  background: var(--surface);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--gradient-primary);
+}
+
+.auth-container h2 {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: var(--text-primary);
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+/* Обычное состояние поля */
+.form-group input {
+  padding: 1rem;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: var(--surface);
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  transform: translateY(-1px);
+}
+
+/* Стили для ошибок - КРАСНАЯ ОБВОДКА */
+.form-group input.error-input {
+  border-color: var(--error) !important;
+  background-color: rgba(239, 68, 68, 0.1) !important;
+}
+
+/* Специальный стиль для ошибки пароля */
+.form-group input.password-error {
+  border-color: var(--error) !important;
+  border-width: 2px !important;
+  background-color: rgba(239, 68, 68, 0.1) !important;
+  animation: shake 0.5s ease-in-out;
+}
+
+/* При фокусе на поле с ошибкой */
+.form-group input.error-input:focus,
+.form-group input.password-error:focus {
+  border-color: var(--error) !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3) !important;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* ВАЖНО: Убираем зеленую обводку полностью для логина */
+.form-group input.valid-input {
+  border-color: var(--border) !important;
+  background-color: var(--surface) !important;
+}
+
+.form-group input.valid-input:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+}
+
+/* Сообщения об ошибках */
+.password-error-text {
+  color: var(--error);
+  font-weight: bold;
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.error-message {
+  color: var(--error);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  background-color: rgba(239, 68, 68, 0.05);
+  border-radius: 4px;
+  border-left: 3px solid var(--error);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Ссылка восстановления пароля */
+.forgot-password-link {
+  text-align: center;
+  margin: 1rem 0;
+}
+
+.forgot-password-link a {
+  color: var(--primary);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.3s ease;
+}
+
+.forgot-password-link a:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+/* Стили для успешного входа */
+.success-message {
+  color: var(--success);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  padding: 0.5rem;
+  background-color: rgba(16, 185, 129, 0.1);
+  border-radius: 4px;
+  border-left: 3px solid var(--success);
+}
+
+/* Подсказки */
+.field-hint {
+  color: var(--success);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  font-style: italic;
+  transition: all 0.3s;
+}
+
+.field-hint.small-text {
+  color: var(--text-secondary);
+  font-style: normal;
+}
+
+/* Ссылка на регистрацию */
+.auth-container > p {
+  margin-top: 1.5rem;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.auth-container > p a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.auth-container > p a:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .auth-container {
+    margin: 1rem;
+    padding: 2rem;
+  }
+}
