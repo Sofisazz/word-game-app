@@ -30,49 +30,60 @@ const AchievementsPage = () => {
         userAPI.getStats(user.id)
       ]);
 
+      console.log('Achievements API response:', achievementsResponse.data);
+      console.log('Stats API response:', statsResponse.data);
+
       if (achievementsResponse.data.success) {
-        setAchievements(achievementsResponse.data.data || []);
-        setUserAchievements(achievementsResponse.data.user_achievements || []);
+        // Проверяем структуру ответа
+        const achievementsData = achievementsResponse.data.data || achievementsResponse.data.achievements || [];
+        const userAchievementsData = achievementsResponse.data.user_achievements || 
+                                   achievementsResponse.data.userAchievements || 
+                                   [];
         
-            console.log('All achievements:', achievementsResponse.data.data);
-        // Отладочная информация в консоль
-        console.log('Achievements loaded:', achievementsResponse.data.data);
-        if (achievementsResponse.data.data && achievementsResponse.data.data.length > 0) {
-          console.log('First achievement image_url:', achievementsResponse.data.data[0].image_url);
+        console.log('Achievements data:', achievementsData);
+        console.log('User achievements IDs:', userAchievementsData);
+        console.log('User achievements type:', typeof userAchievementsData);
         
-           const wordsAchievement = achievementsResponse.data.data.find(a => 
-                a.name.includes('50') || a.condition_type === 'words_learned'
-            );
-            if (wordsAchievement) {
-                console.log('Words achievement:', wordsAchievement);
-            }
-          }
+        setAchievements(achievementsData);
+        setUserAchievements(userAchievementsData);
+        
+        // Проверяем несколько достижений
+        if (achievementsData.length > 0) {
+          console.log('First achievement:', achievementsData[0]);
+          console.log('Does user have first achievement?', userAchievementsData.includes(achievementsData[0].id));
+        }
       } else {
-        setError('Ошибка загрузки достижений');
+        setError('Ошибка загрузки достижений: ' + (achievementsResponse.data.message || ''));
       }
 
       if (statsResponse.data.success) {
         setUserStats(statsResponse.data.data);
-         console.log('User stats:', statsResponse.data.data);
-            console.log('Total words learned (stats):', statsResponse.data.data.stats.total_words_learned);
-            console.log('Words learned (calculated):', statsResponse.data.data.stats.words_learned);
-        if (statsResponse.data.data.stats.total_words_learned >= 55) {
-                console.log('✅ User has enough words for achievement!');
-            } else {
-                console.log(`❌ User needs ${55 - statsResponse.data.data.stats.total_words_learned} more words`);
-            }
-        }
+      } else {
+        console.error('Stats error:', statsResponse.data.error);
+      }
 
     } catch (err) {
-      console.error('Error:', err);
-      setError('Ошибка загрузки данных');
+      console.error('Error fetching achievements:', err);
+      setError('Ошибка загрузки данных: ' + err.message);
     } finally {
       setLoading(false);
     }
   };
 
   const hasAchievement = (achievementId) => {
-    return userAchievements.includes(achievementId);
+    // Преобразуем ID к строке для сравнения, т.к. из API могут приходить строки
+    const achievementIdStr = String(achievementId);
+    
+    // Проверяем, есть ли ID в массиве userAchievements
+    const hasAchievement = userAchievements.some(id => String(id) === achievementIdStr);
+    
+    console.log(`Checking achievement ${achievementId}:`, {
+      userAchievements,
+      achievementIdStr,
+      hasAchievement
+    });
+    
+    return hasAchievement;
   };
 
   const getAchievementProgress = (achievement) => {
@@ -202,6 +213,8 @@ const AchievementsPage = () => {
             const displayIcon = getDisplayIcon(achievement, unlocked);
             const displayBadge = getDisplayBadge(achievement);
             const displayXp = getDisplayXp(achievement);
+
+            console.log(`Achievement ${achievement.name} (ID: ${achievement.id}): unlocked = ${unlocked}`);
 
             return (
               <div 

@@ -3,6 +3,7 @@
 require_once '../config/cors.php';
 require_once '../config/database.php';
 
+session_start();
 header('Content-Type: application/json');
 
 try {
@@ -12,26 +13,34 @@ try {
     $method = $_SERVER['REQUEST_METHOD'];
     
     if ($method === 'GET') {
-        $user_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : 0;
-        
-        $query = "SELECT * FROM achievements ORDER BY id";
-        
-        $stmt = $pdo->prepare($query);
-        $stmt->execute();
-        $achievements = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
-        $user_achievements_ids = [];
-        
-        if ($user_id > 0) {
-            $user_query = "SELECT achievement_id FROM user_achievements WHERE user_id = ?";
-            $user_stmt = $pdo->prepare($user_query);
-            $user_stmt->execute([$user_id]);
-            $user_achievements = $user_stmt->fetchAll(PDO::FETCH_COLUMN, 0);
-            $user_achievements_ids = $user_achievements ?: [];
+        // Проверяем, авторизован ли пользователь через сессию
+        if (!isset($_SESSION['user_id'])) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'message' => 'Пользователь не авторизован']);
+            return;
         }
         
+        $user_id = $_SESSION['user_id'];
+        
+        // Получаем ВСЕ достижения
+        $query = "SELECT * FROM achievements ORDER BY id";
+        $stmt = $pdo->prepare($query);
+        $stmt->execute();
+        $allAchievements = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Получаем ТОЛЬКО те достижения, которые действительно есть у пользователя
+        $user_query = "SELECT achievement_id FROM user_achievements WHERE user_id = ?";
+        $user_stmt = $pdo->prepare($user_query);
+        $user_stmt->execute([$user_id]);
+        $user_achievements = $user_stmt->fetchAll(PDO::FETCH_COLUMN, 0);
+        
+        $user_achievements_ids = array_map('intval', $user_achievements ?: []);
+        
+        // Форматируем достижения
         $formatted_achievements = [];
-        foreach ($achievements as $achievement) {
+        foreach ($allAchievements as $achievement) {
+            $is_unlocked = in_array((int)$achievement['id'], $user_achievements_ids);
+            
             $formatted_achievements[] = [
                 'id' => (int)$achievement['id'],
                 'name' => $achievement['name'] ?? '',
