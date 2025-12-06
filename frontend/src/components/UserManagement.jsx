@@ -85,7 +85,7 @@ const deleteUser = async (userId, username) => {
 
       XLSX.writeFile(workbook, `all_users_${new Date().toISOString().split('T')[0]}.xlsx`);
     } catch (error) {
-      console.error('❌ Ошибка экспорта всех пользователей:', error);
+      console.error('Ошибка экспорта всех пользователей:', error);
       alert('Ошибка при экспорте: ' + error.message);
     }
   };

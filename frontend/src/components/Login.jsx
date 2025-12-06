@@ -18,51 +18,55 @@ const Login = ({ onLogin }) => {
     });
   };
 
-   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  setError('');
 
-    try {
-      console.log('🔄 Отправка данных для входа:', formData);
-      
-      const response = await fetch('http://localhost/backend/api/login.php', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(formData)
-      });
+  try {
+    console.log('🔄 Отправка данных для входа:', formData);
+    
+    const response = await fetch('http://localhost/backend/api/login.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(formData)
+    });
 
-      const data = await response.json();
-      console.log('✅ Ответ от сервера:', data);
+    const data = await response.json();
+    console.log('✅ Ответ от сервера:', data);
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Ошибка входа');
-      }
-
-      if (data.success) {
-        // Передаем данные пользователя в onLogin
-        const userData = await onLogin(data.user);
-        console.log('✅ Пользователь установлен:', userData);
-        
-        // Редирект в зависимости от роли
-        if (userData.role === 'admin') {
-          navigate('/admin');
-        } else {
-          navigate('/');
-        }
-      } else {
-        throw new Error(data.error || 'Ошибка входа');
-      }
-    } catch (err) {
-      console.error('❌ Ошибка входа:', err);
-      setError(err.message || 'Произошла ошибка при входе');
-    } finally {
-      setLoading(false);
+    if (!response.ok) {
+      throw new Error(data.error || 'Ошибка входа');
     }
-  };
+
+    if (data.success) {
+      // СОХРАНЯЕМ ПОЛЬЗОВАТЕЛЯ В LOCALSTORAGE
+      localStorage.setItem('user', JSON.stringify(data.user));
+      console.log('💾 User saved to localStorage:', data.user);
+      
+      // Передаем данные пользователя в onLogin
+      const userData = await onLogin(data.user);
+      console.log('✅ Пользователь установлен:', userData);
+      
+      // Редирект в зависимости от роли
+      if (userData.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
+    } else {
+      throw new Error(data.error || 'Ошибка входа');
+    }
+  } catch (err) {
+    console.error('❌ Ошибка входа:', err);
+    setError(err.message || 'Произошла ошибка при входе');
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="auth-container">

@@ -7,7 +7,9 @@ const EditProfileModal = ({ user, defaultAvatar, onClose, onUpdate }) => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [previewAvatar, setPreviewAvatar] = useState(user.avatar || defaultAvatar);
+  const [previewAvatar, setPreviewAvatar] = useState(
+    user.avatar ? `http://localhost${user.avatar}` : defaultAvatar
+  );
   const fileInputRef = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
 
@@ -22,7 +24,6 @@ const EditProfileModal = ({ user, defaultAvatar, onClose, onUpdate }) => {
     const file = e.target.files[0];
     if (file) {
       setSelectedFile(file);
-      // Создаем preview
       const reader = new FileReader();
       reader.onload = (e) => {
         setPreviewAvatar(e.target.result);
@@ -37,38 +38,66 @@ const EditProfileModal = ({ user, defaultAvatar, onClose, onUpdate }) => {
     setError('');
 
     try {
-      let avatarUrl = user.avatar; // сохраняем текущий аватар
-
-      // Если выбран новый файл, загружаем его
+      let avatarUrl = user.avatar; 
       if (selectedFile) {
         const uploadFormData = new FormData();
         uploadFormData.append('avatar', selectedFile);
         uploadFormData.append('user_id', user.id);
 
+        console.log('Загружаем аватар...');
         const uploadResponse = await userAPI.uploadAvatar(uploadFormData);
+        console.log('Ответ загрузки аватара:', uploadResponse.data);
+        
         if (uploadResponse.data.success) {
-          avatarUrl = uploadResponse.data.avatar_url;
+          avatarUrl = uploadResponse.data.avatar_url; // '/backend/uploads/avatars/avatar_1_123456.jpg'
+          console.log('Новый URL аватара:', avatarUrl);
         } else {
-          throw new Error('Ошибка загрузки фото');
+          throw new Error(uploadResponse.data.error || 'Ошибка загрузки фото');
         }
       }
 
-      // Обновляем профиль с новыми данными
       const updateResponse = await userAPI.updateProfile({
         user_id: user.id,
         display_name: formData.display_name,
         avatar: avatarUrl
       });
 
+      console.log('Ответ обновления профиля:', updateResponse.data);
+
       if (updateResponse.data.success) {
-        onUpdate(updateResponse.data.user);
+  
+        const updatedUser = {
+          ...user,
+          display_name: formData.display_name || user.username,
+          avatar: avatarUrl // Важно: используем avatarUrl, а не user.avatar
+        };
+
+        console.log('Обновленный пользователь:', updatedUser);
+
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        console.log('Пользователь сохранен в localStorage:', updatedUser);
+
+        onUpdate(updatedUser);
+        
+        setTimeout(() => {
+          alert('Профиль успешно обновлён!');
+        }, 100);
+        
         onClose();
+      } else {
+        throw new Error(updateResponse.data.error || 'Ошибка обновления профиля');
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Ошибка сохранения профиля');
-      console.error('Save error:', err);
+      console.error('Ошибка сохранения профиля:', err);
+      setError(err.response?.data?.error || err.message || 'Ошибка сохранения профиля');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const triggerFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
     }
   };
 
@@ -76,7 +105,7 @@ const EditProfileModal = ({ user, defaultAvatar, onClose, onUpdate }) => {
     <div className="modal-overlay">
       <div className="modal-content">
         <div className="modal-header">
-          <h2>✏️ Редактировать профиль</h2>
+          <h2>Редактировать профиль</h2>
           <button onClick={onClose} className="close-button">×</button>
         </div>
 
@@ -84,14 +113,16 @@ const EditProfileModal = ({ user, defaultAvatar, onClose, onUpdate }) => {
           {/* Аватар */}
           <div className="avatar-section">
             <label>Аватар</label>
-            <div className="avatar-preview">
+            <div className="avatar-preview" onClick={triggerFileInput} style={{ cursor: 'pointer' }}>
               <img 
                 src={previewAvatar} 
                 alt="Avatar preview" 
                 className="avatar-image large"
                 onError={(e) => {
+                  console.error('Ошибка загрузки превью:', previewAvatar);
                   e.target.src = defaultAvatar;
                 }}
+                onLoad={() => console.log('✅ Превью загружено:', previewAvatar)}
               />
             </div>
             
@@ -103,13 +134,14 @@ const EditProfileModal = ({ user, defaultAvatar, onClose, onUpdate }) => {
                   onChange={handleAvatarChange}
                   accept="image/jpeg,image/png,image/gif,image/webp"
                   className="file-input"
+                  style={{ display: 'none' }}
                 />
                 <button 
                   type="button" 
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={triggerFileInput}
                   className="btn btn-secondary"
                 >
-                  📁 Выбрать фото
+                  Выбрать фото
                 </button>
               </div>
               
@@ -151,13 +183,24 @@ const EditProfileModal = ({ user, defaultAvatar, onClose, onUpdate }) => {
             <small>Email нельзя изменить</small>
           </div>
 
-          {error && <div className="error">{error}</div>}
+          {error && (
+            <div className="error-message" style={{
+              backgroundColor: '#f8d7da',
+              color: '#721c24',
+              padding: '10px',
+              borderRadius: '4px',
+              margin: '10px 0'
+            }}>
+              <strong>Ошибка:</strong> {error}
+            </div>
+          )}
 
           <div className="modal-actions">
             <button 
               type="button" 
               onClick={onClose}
               className="btn btn-secondary"
+              style={{ marginRight: '10px' }}
             >
               Отмена
             </button>
@@ -165,8 +208,12 @@ const EditProfileModal = ({ user, defaultAvatar, onClose, onUpdate }) => {
               type="submit" 
               disabled={loading}
               className="btn btn-primary"
+              style={{
+                backgroundColor: loading ? '#ccc' : '#007bff',
+                cursor: loading ? 'not-allowed' : 'pointer'
+              }}
             >
-              {loading ? '💾 Сохранение...' : '💾 Сохранить изменения'}
+              {loading ? 'Сохранение...' : 'Сохранить изменения'}
             </button>
           </div>
         </form>

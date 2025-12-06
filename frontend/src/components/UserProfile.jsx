@@ -99,10 +99,10 @@ const UserProfile = ({ user, onUserUpdate }) => {
           onClick={() => setShowEditModal(true)}
           className="btn btn-primary"
         >
-          ✏️ Редактировать профиль
+        Редактировать профиль
         </button>
         <Link to="/achievements" className="btn btn-secondary">
-          🎖️ Все достижения
+          Все достижения
         </Link>
       </div>
 
@@ -182,7 +182,7 @@ const UserProfile = ({ user, onUserUpdate }) => {
       </div>
 
       <div className="achievements-section">
-        <h2>🎖️ Достижения ({achievements.length})</h2>
+        <h2>Достижения ({achievements.length})</h2>
         <div className="achievements-grid-profile">
           {achievements.map((achievement) => (
             <div key={achievement.id} className="achievement-card-profile">
