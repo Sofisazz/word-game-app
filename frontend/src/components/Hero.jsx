@@ -55,7 +55,7 @@ const Hero = ({ user }) => {
                 <span className="gradient-text"> {user.display_name || user.username}!</span>
               </h1>
               <p className="hero-subtitle">
-                Рады видеть вас снова! Готовы продолжить изучение слов?
+                Рады видеть вас! Готовы изучать новые слова?
               </p>
               
               <div className="hero-buttons-user">
