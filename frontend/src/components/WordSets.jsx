@@ -197,53 +197,60 @@ const deleteWord = async (setId, wordId) => {
     }
 };
 
-  const addNewWord = async (setId) => {
-    const newWord = prompt('Введите новое слово и перевод через запятую (например: apple, яблоко):');
-    if (!newWord) return;
+ const addNewWord = async (setId) => {
+  const newWord = prompt('Введите новое слово и перевод через запятую (например: apple, яблоко):');
+  if (!newWord) return;
 
-    const [original_word, translation] = newWord.split(',').map(s => s.trim());
-    if (!original_word || !translation) {
-        alert('Пожалуйста, введите слово и перевод через запятую');
-        return;
-    }
+  const [original_word, translation] = newWord.split(',').map(s => s.trim());
+  if (!original_word || !translation) {
+    alert('Пожалуйста, введите слово и перевод через запятую');
+    return;
+  }
 
-    // Спрашиваем пример использования (опционально)
-    const example_sentence = prompt('Введите пример использования (можно оставить пустым):') || '';
+  // Спрашиваем пример использования (опционально)
+  const example_sentence = prompt('Введите пример использования (можно оставить пустым):') || '';
 
-    try {
-        console.log(`➕ Добавление нового слова в набор ${setId}...`);
-        const response = await adminAPI.addWord({
-            set_id: setId,
-            original_word: original_word,
-            translation: translation,
-            example_sentence: example_sentence
-        });
+  try {
+    console.log(`➕ Добавление нового слова в набор ${setId}...`);
+    const response = await adminAPI.addWord({
+      set_id: setId,
+      original_word: original_word,
+      translation: translation,
+      example_sentence: example_sentence
+    });
 
-        if (response.data.success) {
-            // Обновляем счетчик слов в наборе
-            setWordSets(prev => prev.map(set => 
-                set.id === setId 
-                    ? { 
-                        ...set, 
-                        word_count: (set.word_count || 0) + 1,
-                        words: set.words ? [...set.words, response.data.word] : undefined
-                    }
-                    : set
-            ));
-            
-            // Если набор раскрыт, обновляем список слов
-            if (expandedSet === setId) {
-                await fetchWordsInSet(setId);
-            }
-            
-            console.log('✅ Новое слово успешно добавлено');
-        } else {
-            throw new Error(response.data.error);
+    if (response.data.success) {
+      // Создаем временный объект слова с id из ответа
+      const newWordObj = {
+        id: response.data.word_id, // ID из ответа сервера
+        word_set_id: setId,
+        original_word: original_word,
+        translation: translation,
+        example_sentence: example_sentence
+      };
+
+      // Обновляем счетчик слов в наборе и добавляем слово в массив
+      setWordSets(prev => prev.map(set => {
+        if (set.id === setId) {
+          // Проверяем, что words существует
+          const currentWords = set.words || [];
+          return { 
+            ...set, 
+            word_count: (set.word_count || 0) + 1,
+            words: [...currentWords, newWordObj] // Добавляем новое слово
+          };
         }
-    } catch (error) {
-        console.error('❌ Ошибка добавления слова:', error);
-        alert('Ошибка при добавлении слова: ' + (error.response?.data?.error || error.message));
+        return set;
+      }));
+      
+      console.log('✅ Новое слово успешно добавлено');
+    } else {
+      throw new Error(response.data.error);
     }
+  } catch (error) {
+    console.error('❌ Ошибка добавления слова:', error);
+    alert('Ошибка при добавлении слова: ' + (error.response?.data?.error || error.message));
+  }
 };
 
   const deleteSet = async (setId) => {

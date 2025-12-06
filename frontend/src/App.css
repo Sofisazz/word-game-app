@@ -1787,3 +1787,70 @@ background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
 .admin-header h1 {
   margin: 0;
 }
+/* Стили для ошибок */
+.error-message {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.error {
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin: 1rem 0;
+  font-size: 0.9rem;
+}
+
+/* Стили для подсказок пароля */
+.password-requirements {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 1rem;
+  margin: 1rem 0;
+  font-size: 0.875rem;
+}
+
+.password-requirements ul {
+  margin: 0.5rem 0 0 0;
+  padding-left: 1.2rem;
+}
+
+.password-requirements li {
+  margin-bottom: 0.25rem;
+}
+
+.password-requirements li.valid {
+  color: #28a745;
+  text-decoration: line-through;
+}
+
+/* Стиль для полей с ошибками только когда они были затронуты или форма отправлена */
+.error-input {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+
+/* Обычный стиль полей */
+.form-group input {
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  padding: 0.5rem;
+  width: 100%;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-group input:focus {
+  border-color: #80bdff;
+  outline: 0;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.error-message {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}

@@ -10,95 +10,260 @@ const Register = ({ onRegister }) => {
     password: '',
     confirmPassword: ''
   });
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({
+    username: false,
+    email: false,
+    password: false,
+    confirmPassword: false
+  });
+  const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate(); // Добавляем навигацию
+  const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+  // Функции валидации
+  const validateUsername = (username, forceValidation = false) => {
+    // Если поле не было затронуто и форму не отправляли - не валидируем
+    if (!forceValidation && !touched.username && !submitted) return '';
+    if (!username.trim()) return 'Имя пользователя обязательно';
+    
+    const forbiddenChars = /[0-9.,?!*/_+-]/;
+    if (forbiddenChars.test(username)) {
+      return 'Имя не должно содержать цифры, знаки препинания и специальные символы';
+    }
+    
+    if (username.length < 3) return 'Имя должно содержать минимум 3 символа';
+    if (username.length > 20) return 'Имя не должно превышать 20 символов';
+    
+    const validChars = /^[a-zA-Zа-яА-ЯёЁ\s-]+$/;
+    if (!validChars.test(username)) {
+      return 'Имя должно содержать только буквы, пробелы и дефисы';
+    }
+    
+    return '';
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-  setError('');
-
-  if (formData.password !== formData.confirmPassword) {
-    setError('Пароли не совпадают');
-    setLoading(false);
-    return;
-  }
-
-  try {
-    console.log('📤 Отправляем данные для регистрации:', {
-      username: formData.username,
-      email: formData.email,
-      password: '***'
-    });
-
-    // 1. РЕГИСТРАЦИЯ
-    const registerData = await authAPI.register({
-      username: formData.username,
-      email: formData.email,
-      password: formData.password
-    });
+  const validateEmail = (email, forceValidation = false) => {
+    if (!forceValidation && !touched.email && !submitted) return '';
+    if (!email.trim()) return 'Email обязателен';
     
-    console.log('📨 Данные от регистрации:', registerData);
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return 'Введите корректный email адрес';
+    }
     
-    // ВАЖНО: registerData уже данные, а не response
-    if (registerData && registerData.success) {
-      console.log('✅ Регистрация успешна! ID пользователя:', registerData.user?.id);
-      
-      // 2. АВТОМАТИЧЕСКИЙ ВХОД
-      console.log('🔐 Пытаемся войти...');
-      const loginData = await authAPI.login({
-        username: formData.email,
+    return '';
+  };
+
+  const validatePassword = (password, forceValidation = false) => {
+    if (!forceValidation && !touched.password && !submitted) return '';
+    if (!password) return 'Пароль обязателен';
+    
+    if (password.length < 6) return 'Пароль должен содержать минимум 6 символов';
+    if (password.length > 30) return 'Пароль не должен превышать 30 символов';
+    
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    
+    const errorMessages = [];
+    if (!hasUpperCase) errorMessages.push('хотя бы одну заглавную букву');
+    if (!hasLowerCase) errorMessages.push('хотя бы одну строчную букву');
+    if (!hasNumbers) errorMessages.push('хотя бы одну цифру');
+    
+    if (errorMessages.length > 0) {
+      return `Пароль должен содержать: ${errorMessages.join(', ')}`;
+    }
+    
+    const weakPasswords = ['password', '123456', 'qwerty', 'admin', 'пароль'];
+    if (weakPasswords.includes(password.toLowerCase())) {
+      return 'Пароль слишком простой';
+    }
+    
+    return '';
+  };
+
+  const validateConfirmPassword = (confirmPassword, forceValidation = false) => {
+    if (!forceValidation && !touched.confirmPassword && !submitted) return '';
+    if (!confirmPassword) return 'Подтверждение пароля обязательно';
+    if (confirmPassword !== formData.password) return 'Пароли не совпадают';
+    return '';
+  };
+
+  // Валидация всех полей (только при отправке)
+  const validateForm = () => {
+    const newErrors = {};
+    
+    newErrors.username = validateUsername(formData.username, true);
+    newErrors.email = validateEmail(formData.email, true);
+    newErrors.password = validatePassword(formData.password, true);
+    newErrors.confirmPassword = validateConfirmPassword(formData.confirmPassword, true);
+    
+    setErrors(newErrors);
+    
+    return !Object.values(newErrors).some(error => error !== '');
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    
+    if (name === 'username') {
+      const cleanedValue = value.replace(/[0-9.,?!*/_+-]/g, '');
+      setFormData({
+        ...formData,
+        [name]: cleanedValue
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      });
+    }
+    
+    // Если поле было затронуто и у него есть ошибка - очищаем ошибку при вводе
+    if (touched[name] && errors[name]) {
+      setErrors({
+        ...errors,
+        [name]: ''
+      });
+    }
+  };
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    
+    // Помечаем поле как "затронутое"
+    if (!touched[name]) {
+      setTouched({
+        ...touched,
+        [name]: true
+      });
+    }
+    
+    // Валидируем только если поле затронуто или форма была отправлена
+    let error = '';
+    switch (name) {
+      case 'username':
+        error = validateUsername(value, touched.username || submitted);
+        break;
+      case 'email':
+        error = validateEmail(value, touched.email || submitted);
+        break;
+      case 'password':
+        error = validatePassword(value, touched.password || submitted);
+        break;
+      case 'confirmPassword':
+        error = validateConfirmPassword(value, touched.confirmPassword || submitted);
+        break;
+      default:
+        break;
+    }
+    
+    if (error !== errors[name]) {
+      setErrors({
+        ...errors,
+        [name]: error
+      });
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitted(true);
+    
+    // Проверяем все поля перед отправкой (теперь всегда с forceValidation = true)
+    if (!validateForm()) {
+      setErrors({
+        ...errors,
+        form: 'Пожалуйста, исправьте ошибки в форме'
+      });
+      return;
+    }
+    
+    setLoading(true);
+
+    try {
+      console.log('📤 Отправляем данные для регистрации:', {
+        username: formData.username,
+        email: formData.email,
+        password: '***'
+      });
+
+      const registerData = await authAPI.register({
+        username: formData.username,
+        email: formData.email,
         password: formData.password
       });
       
-      console.log('🔑 Данные от входа:', loginData);
+      console.log('📨 Данные от регистрации:', registerData);
       
-      // Здесь тоже loginData уже данные
-      if (loginData && loginData.success) {
-        console.log('🎉 Вход успешен!');
-        onRegister(loginData.user);
-        navigate('/');
+      if (registerData && registerData.success) {
+        console.log('✅ Регистрация успешна! ID пользователя:', registerData.user?.id);
+        
+        console.log('🔐 Пытаемся войти...');
+        const loginData = await authAPI.login({
+          username: formData.email,
+          password: formData.password
+        });
+        
+        console.log('🔑 Данные от входа:', loginData);
+        
+        if (loginData && loginData.success) {
+          console.log('🎉 Вход успешен!');
+          onRegister(loginData.user);
+          navigate('/');
+        } else {
+          console.warn('⚠️ Регистрация успешна, но вход не удался');
+          setErrors({
+            form: 'Регистрация успешна! Пожалуйста, войдите вручную.'
+          });
+          setTimeout(() => {
+            navigate('/login');
+          }, 2000);
+        }
       } else {
-        console.warn('⚠️ Регистрация успешна, но вход не удался');
-        setError('Регистрация успешна! Пожалуйста, войдите вручную.');
-        setTimeout(() => {
-          navigate('/login');
-        }, 2000);
+        console.warn('❌ Сервер не подтвердил успешность регистрации');
+        setErrors({
+          form: registerData?.error || registerData?.message || 'Ошибка при регистрации'
+        });
       }
-    } else {
-      console.warn('❌ Сервер не подтвердил успешность регистрации');
-      setError(registerData?.error || registerData?.message || 'Ошибка при регистрации');
-    }
-    
-  } catch (error) {
-    console.error('💥 Ошибка в процессе регистрации:', error);
-    
-    // Обработка ошибок
-    if (error.response) {
-      if (error.response.status === 409) {
-        setError('Пользователь с таким именем или email уже существует');
-      } else if (error.response.status === 400) {
-        setError('Некорректные данные: ' + (error.response.data?.error || ''));
+      
+    } catch (error) {
+      console.error('💥 Ошибка в процессе регистрации:', error);
+      
+      if (error.response) {
+        if (error.response.status === 409) {
+          setErrors({
+            form: 'Пользователь с таким именем или email уже существует'
+          });
+        } else if (error.response.status === 400) {
+          setErrors({
+            form: 'Некорректные данные: ' + (error.response.data?.error || '')
+          });
+        } else {
+          setErrors({
+            form: error.response.data?.error || `Ошибка ${error.response.status}`
+          });
+        }
+      } else if (error.request) {
+        setErrors({
+          form: 'Нет соединения с сервером'
+        });
       } else {
-        setError(error.response.data?.error || `Ошибка ${error.response.status}`);
+        setErrors({
+          form: 'Ошибка: ' + error.message
+        });
       }
-    } else if (error.request) {
-      setError('Нет соединения с сервером');
-    } else {
-      setError('Ошибка: ' + error.message);
+    } finally {
+      setLoading(false);
     }
-  } finally {
-    setLoading(false);
-  }
-};
+  };
+
+  // Получаем класс для поля ввода
+  const getInputClassName = (fieldName) => {
+    const hasError = errors[fieldName] && (touched[fieldName] || submitted);
+    return hasError ? 'error-input' : '';
+  };
 
   return (
     <div className="auth-container">
@@ -111,8 +276,14 @@ const handleSubmit = async (e) => {
             name="username"
             value={formData.username}
             onChange={handleChange}
+            onBlur={handleBlur}
+            placeholder="Только буквы, пробелы и дефисы"
             required
+            className={getInputClassName('username')}
           />
+          {errors.username && (touched.username || submitted) && (
+            <div className="error-message">{errors.username}</div>
+          )}
         </div>
         <div className="form-group">
           <label>Email:</label>
@@ -121,8 +292,14 @@ const handleSubmit = async (e) => {
             name="email"
             value={formData.email}
             onChange={handleChange}
+            onBlur={handleBlur}
+            placeholder="example@domain.com"
             required
+            className={getInputClassName('email')}
           />
+          {errors.email && (touched.email || submitted) && (
+            <div className="error-message">{errors.email}</div>
+          )}
         </div>
         <div className="form-group">
           <label>Пароль:</label>
@@ -131,9 +308,14 @@ const handleSubmit = async (e) => {
             name="password"
             value={formData.password}
             onChange={handleChange}
+            onBlur={handleBlur}
+            placeholder="Минимум 6 символов, заглавные, строчные буквы и цифры"
             required
-            minLength="6"
+            className={getInputClassName('password')}
           />
+          {errors.password && (touched.password || submitted) && (
+            <div className="error-message">{errors.password}</div>
+          )}
         </div>
         <div className="form-group">
           <label>Подтвердите пароль:</label>
@@ -142,10 +324,29 @@ const handleSubmit = async (e) => {
             name="confirmPassword"
             value={formData.confirmPassword}
             onChange={handleChange}
+            onBlur={handleBlur}
+            placeholder="Повторите пароль"
             required
+            className={getInputClassName('confirmPassword')}
           />
+          {errors.confirmPassword && (touched.confirmPassword || submitted) && (
+            <div className="error-message">{errors.confirmPassword}</div>
+          )}
         </div>
-        {error && <div className="error">{error}</div>}
+        
+        {/* Требования к паролю (подсказка) */}
+        <div className="password-requirements">
+          <p><strong>Пароль должен содержать:</strong></p>
+          <ul>
+            <li className={formData.password.length >= 6 ? 'valid' : ''}>Минимум 6 символов</li>
+            <li className={/[A-Z]/.test(formData.password) ? 'valid' : ''}>Хотя бы одну заглавную букву</li>
+            <li className={/[a-z]/.test(formData.password) ? 'valid' : ''}>Хотя бы одну строчную букву</li>
+            <li className={/\d/.test(formData.password) ? 'valid' : ''}>Хотя бы одну цифру</li>
+          </ul>
+        </div>
+        
+        {errors.form && <div className="error">{errors.form}</div>}
+        
         <button type="submit" className="btn btn-primary" disabled={loading}>
           {loading ? 'Регистрация...' : 'Зарегистрироваться'}
         </button>
