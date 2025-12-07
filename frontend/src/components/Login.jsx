@@ -297,15 +297,6 @@ const Login = ({ onLogin }) => {
     
     if (!touched[fieldName]) return null;
     
-    if (fieldName === 'identifier' && formData.identifier) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (emailRegex.test(formData.identifier)) {
-        return <div className="field-hint">✓ Используется email для входа</div>;
-      } else {
-        return <div className="field-hint">✓ Используется имя пользователя для входа</div>;
-      }
-    }
-    
     if (fieldName === 'password' && formData.password) {
       if (formData.password.length >= 8) {
         return <div className="field-hint">✓ Пароль достаточно длинный</div>;
