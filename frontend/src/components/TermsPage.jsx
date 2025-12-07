@@ -1,11 +1,10 @@
-// components/TermsPage.js
 import React from 'react';
 import './TermsPage.css';
 const TermsPage = () => {
   return (
     <div className="page-container">
       <div className="page-content">
-        <h1>📄 Условия использования</h1>
+        <h1>Условия использования</h1>
         
         <section className="terms-section">
           <h2>1. Общие положения</h2>

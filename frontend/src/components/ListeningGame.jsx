@@ -21,7 +21,7 @@ const ListeningGame = () => {
   const [currentTime, setCurrentTime] = useState(0);
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [xpEarned, setXpEarned] = useState(0);
-  const [wordResults, setWordResults] = useState([]); // ДОБАВЛЕНО
+  const [wordResults, setWordResults] = useState([]);
   
   const startTimeRef = useRef(null);
   const timerRef = useRef(null);
@@ -45,6 +45,14 @@ const ListeningGame = () => {
       generateOptions();
     }
   }, [currentWordIndex]);
+  useEffect(() => {
+    if (isFinished && wordResults.length === gameWords.length) {
+      const timeSpent = currentTime;
+      setTotalTime(timeSpent);
+      stopTimer();
+      saveGameResults();
+    }
+  }, [isFinished, wordResults, gameWords.length]);
 
   const startTimer = () => {
     timerRef.current = setInterval(() => {
@@ -92,7 +100,7 @@ const ListeningGame = () => {
     setXpEarned(0);
     setTotalTime(0);
     setCurrentTime(0);
-    setWordResults([]); // ДОБАВЛЕНО
+    setWordResults([]);
     startTimeRef.current = null;
   };
 
@@ -130,7 +138,6 @@ const ListeningGame = () => {
       setCorrectAnswers(correctAnswers + 1);
     }
 
-    // Сохраняем результат для этого слова
     const wordResult = {
       word_id: currentWord.id,
       is_correct: isCorrect
@@ -145,30 +152,30 @@ const ListeningGame = () => {
       if (currentWordIndex < gameWords.length - 1) {
         setCurrentWordIndex(currentWordIndex + 1);
       } else {
-        const timeSpent = currentTime;
-        setTotalTime(timeSpent);
-        stopTimer();
-        saveGameResults(timeSpent);
         setIsFinished(true);
       }
     }, 1500);
   };
 
-  const saveGameResults = async (timeSpent) => {
+  const saveGameResults = async () => {
     try {
       const userData = sessionStorage.getItem('user');
       const user = userData ? JSON.parse(userData) : null;
       
       if (!user) {
-        console.error('❌ No user found in sessionStorage');
+        console.error('No user found in sessionStorage');
         return;
       }
 
-      console.log('🎮 Saving listening game results for user:', user.id);
-      console.log('📊 Word results array:', wordResults);
-      
+      if (wordResults.length !== gameWords.length) {
+        console.error('Missing results!', {
+          resultsCount: wordResults.length,
+          wordsCount: gameWords.length
+        });
+      }
+
       const incorrectAnswers = wordResults.filter(r => !r.is_correct).length;
-      console.log('❌ Incorrect answers:', incorrectAnswers);
+      console.log('Incorrect answers:', incorrectAnswers);
 
       const gameData = {
         user_id: user.id,
@@ -177,8 +184,8 @@ const ListeningGame = () => {
         total_questions: gameWords.length,
         correct_answers: correctAnswers,
         words_learned: correctAnswers,
-        time_spent: timeSpent,
-        results: wordResults // ДОБАВЛЕНО
+        time_spent: currentTime, 
+        results: wordResults
       };
 
       console.log('📨 Sending game data to server:', gameData);
@@ -223,7 +230,7 @@ const ListeningGame = () => {
     setSelectedOption(null);
     setTotalTime(0);
     setCurrentTime(0);
-    setWordResults([]); // ДОБАВЛЕНО
+    setWordResults([]);
     stopTimer();
     startTimeRef.current = null;
   };

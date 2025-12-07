@@ -1,4 +1,3 @@
-/* frontend\src\components\PracticeWrongWords.css */
 .practice-container {
   max-width: 1200px;
   margin: 0 auto;
@@ -39,7 +38,7 @@
 
 .stat-label {
   font-size: 14px;
-  color: #666;
+  color: #ffffff;
   margin-bottom: 5px;
 }
 
@@ -416,8 +415,6 @@
   justify-content: center;
 }
 
-/* frontend\src\components\PracticeWrongWords.css */
-
 .words-preview-header {
   display: flex;
   justify-content: space-between;
@@ -530,7 +527,6 @@
   background-color: #545b62;
 }
 
-/* Пагинация */
 .pagination-controls {
   margin-top: 30px;
   padding-top: 20px;
@@ -617,7 +613,6 @@
   background-color: #545b62;
 }
 
-/* Адаптивность */
 @media (max-width: 768px) {
   .word-content {
     flex-direction: column;
@@ -640,9 +635,6 @@
   }
 }
 
-/* frontend\src\components\PracticeWrongWords.css */
-
-/* Кнопка произношения в заголовке слова */
 .btn-speak-header {
   background: transparent;
   border: none;
@@ -665,7 +657,6 @@
   transform: scale(1.1);
 }
 
-/* Контейнер для кнопок в заголовке слова */
 .word-actions-header {
   display: flex;
   justify-content: center;
@@ -673,7 +664,6 @@
   gap: 10px;
 }
 
-/* Область слова с кнопками */
 .word-area {
   text-align: center;
   margin: 30px 0;
@@ -690,7 +680,6 @@
   display: inline-block;
 }
 
-/* Кнопка произношения в режиме аудирования */
 .btn-speak {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -717,13 +706,13 @@
   transform: translateY(-1px);
 }
 
-/* Иконка в кнопке произношения */
+
 .btn-speak::before {
   content: "🔊";
   font-size: 20px;
 }
 
-/* Подсказка в режиме аудирования */
+
 .hint {
   color: #666;
   font-size: 14px;
@@ -731,7 +720,7 @@
   font-style: italic;
 }
 
-/* Пример использования слова */
+
 .example {
   font-style: italic;
   color: #666;
@@ -747,7 +736,7 @@
   color: #333;
 }
 
-/* Анимация для активного произношения */
+
 @keyframes speaking {
   0% {
     transform: scale(1);
@@ -765,7 +754,7 @@
   background: #ffc107 !important;
 }
 
-/* Адаптивные стили для мобильных устройств */
+
 @media (max-width: 768px) {
   .btn-speak {
     padding: 12px 20px;
@@ -783,7 +772,7 @@
   }
 }
 
-/* Стили для индикатора произношения */
+
 .speaking-indicator {
   display: inline-block;
   width: 8px;
@@ -809,7 +798,7 @@
   }
 }
 
-/* Улучшенный внешний вид кнопки в навигации по словам */
+
 .game-controls {
   display: flex;
   justify-content: center;
@@ -848,7 +837,7 @@
   transform: none !important;
 }
 
-/* Улучшенный внешний вид кнопки проверки в режиме печати */
+
 .btn-check {
   background-color: #17a2b8;
   color: white;
@@ -864,7 +853,7 @@
   background-color: #6c757d;
 }
 
-/* Анимация для правильного/неправильного ответа */
+
 @keyframes correctAnswer {
   0% {
     transform: scale(1);

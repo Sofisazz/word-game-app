@@ -21,7 +21,7 @@ const TypingGame = () => {
   const [currentTime, setCurrentTime] = useState(0);
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [xpEarned, setXpEarned] = useState(0);
-  const [wordResults, setWordResults] = useState([]); // ДОБАВЛЕНО
+  const [wordResults, setWordResults] = useState([]);
   
   const startTimeRef = useRef(null);
   const timerRef = useRef(null);
@@ -38,6 +38,15 @@ const TypingGame = () => {
       }
     }
   }, [gameWords, showWordModal, isFinished]);
+
+  useEffect(() => {
+    if (isFinished && wordResults.length === gameWords.length) {
+      const timeSpent = currentTime;
+      setTotalTime(timeSpent);
+      stopTimer();
+      saveGameResults();
+    }
+  }, [isFinished, wordResults, gameWords.length]);
 
   const startTimer = () => {
     timerRef.current = setInterval(() => {
@@ -86,7 +95,7 @@ const TypingGame = () => {
     setXpEarned(0);
     setTotalTime(0);
     setCurrentTime(0);
-    setWordResults([]); // ДОБАВЛЕНО
+    setWordResults([]);
     startTimeRef.current = null;
   };
 
@@ -99,12 +108,11 @@ const TypingGame = () => {
     if (isCorrect) {
       setScore(score + 1);
       setCorrectAnswers(correctAnswers + 1);
-      setMessage('Правильно! ✅');
+      setMessage('Правильно!');
     } else {
       setMessage(`Неправильно! Правильный ответ: ${currentWord.translation}`);
     }
 
-    // Сохраняем результат для этого слова
     const wordResult = {
       word_id: currentWord.id,
       is_correct: isCorrect
@@ -120,30 +128,34 @@ const TypingGame = () => {
       if (currentWordIndex < gameWords.length - 1) {
         setCurrentWordIndex(currentWordIndex + 1);
       } else {
-        const timeSpent = currentTime;
-        setTotalTime(timeSpent);
-        stopTimer();
-        saveGameResults(timeSpent);
         setIsFinished(true);
       }
     }, 1500);
   };
 
-  const saveGameResults = async (timeSpent) => {
+  const saveGameResults = async () => {
     try {
       const userData = sessionStorage.getItem('user');
       const user = userData ? JSON.parse(userData) : null;
       
       if (!user) {
-        console.error('❌ No user found in sessionStorage');
+        console.error('No user found in sessionStorage');
         return;
       }
 
-      console.log('🎮 Saving typing game results for user:', user.id);
-      console.log('📊 Word results array:', wordResults);
-      
+      console.log('Saving typing game results for user:', user.id);
+      console.log('Word results array:', wordResults);
+      console.log('Game words length:', gameWords.length);
+
+      if (wordResults.length !== gameWords.length) {
+        console.error('Missing results!', {
+          resultsCount: wordResults.length,
+          wordsCount: gameWords.length
+        });
+      }
+
       const incorrectAnswers = wordResults.filter(r => !r.is_correct).length;
-      console.log('❌ Incorrect answers:', incorrectAnswers);
+      console.log('Incorrect answers:', incorrectAnswers);
 
       const gameData = {
         user_id: user.id,
@@ -152,25 +164,25 @@ const TypingGame = () => {
         total_questions: gameWords.length,
         correct_answers: correctAnswers,
         words_learned: correctAnswers,
-        time_spent: timeSpent,
-        results: wordResults // ДОБАВЛЕНО
+        time_spent: currentTime, 
+        results: wordResults
       };
 
-      console.log('📨 Sending game data to server:', gameData);
+      console.log('Sending game data to server:', gameData);
 
       const response = await userAPI.saveGameResult(gameData);
       
-      console.log('📬 Server response:', response);
-      console.log('📬 Response data:', response.data);
+      console.log('Server response:', response);
+      console.log('Response data:', response.data);
       
       if (response.data && response.data.success) {
         setXpEarned(response.data.xp_earned || 0);
-        console.log('✅ Typing game results saved successfully! XP earned:', response.data.xp_earned);
+        console.log('Typing game results saved successfully! XP earned:', response.data.xp_earned);
       } else {
-        console.error('❌ Failed to save game results:', response.data ? response.data.message : 'No response data');
+        console.error('Failed to save game results:', response.data ? response.data.message : 'No response data');
       }
     } catch (err) {
-      console.error('💥 Error saving game results:', err);
+      console.error('Error saving game results:', err);
     }
   };
 
@@ -188,7 +200,7 @@ const TypingGame = () => {
     setMessage('');
     setTotalTime(0);
     setCurrentTime(0);
-    setWordResults([]); // ДОБАВЛЕНО
+    setWordResults([]);
     stopTimer();
     startTimeRef.current = null;
   };
@@ -392,6 +404,7 @@ const TypingGame = () => {
       <form onSubmit={handleSubmit} className="typing-form">
         <input
           type="text"
+          maxLength={100}
           value={userInput}
           onChange={(e) => setUserInput(e.target.value)}
           placeholder="Введите перевод..."

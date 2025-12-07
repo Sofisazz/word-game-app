@@ -1,4 +1,3 @@
-// components/admin/AdminSidebar.js
 import React from 'react';
 
 const AdminSidebar = ({ activeSection, setActiveSection, onLogout }) => {

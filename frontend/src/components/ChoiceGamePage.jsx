@@ -51,7 +51,6 @@ const ChoiceGamePage = () => {
               </div>
               <p className="set-description">{set.description}</p>
               <div className="game-actions">
-                {/* Передаём words=10 по умолчанию, или открываем модалку */}
                 <Link 
                   to={`/game/choice/${set.id}?words=10`} 
                   className="btn btn-primary btn-large"

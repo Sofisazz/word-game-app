@@ -1,4 +1,4 @@
-/* HelpPage.css */
+
 .page-container {
   max-width: 1000px;
   margin: 0 auto;
@@ -109,7 +109,7 @@
   border-radius: 50%;
 }
 
-/* Специфичные цвета для разных секций */
+
 .help-section:nth-child(1) li {
   border-left-color: #10b981;
 }
@@ -156,7 +156,6 @@
   text-decoration: none;
 }
 
-/* Game Types Grid */
 .game-types {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -216,7 +215,6 @@
   font-size: 1rem;
 }
 
-/* Contact Section */
 .help-section:last-child {
   background: linear-gradient(135deg, var(--surface), #f8fafc);
   border: 2px solid var(--primary);
@@ -233,7 +231,7 @@
   margin-bottom: 0.5rem;
 }
 
-/* Анимации */
+
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -254,7 +252,7 @@
 .help-section:nth-child(3) { animation-delay: 0.3s; }
 .help-section:nth-child(4) { animation-delay: 0.4s; }
 
-/* Адаптивность */
+
 @media (max-width: 768px) {
   .page-container {
     padding: 1rem;

@@ -1,4 +1,4 @@
-/* Admin Panel Styles - Clean Modern Design */
+
 :root {
   --primary: #3b82f6;
   --primary-light: #60a5fa;
@@ -14,7 +14,7 @@
   --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
 }
 
-/* Base Styles */
+
 .admin-statistics,
 .word-sets {
   max-width: 1200px;
@@ -23,7 +23,7 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* Common Header Styles */
+
 .admin-header {
   display: flex;
   justify-content: space-between;
@@ -64,7 +64,7 @@
   transform: none;
 }
 
-/* Statistics Styles */
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -113,7 +113,7 @@
   font-weight: 600;
 }
 
-/* Chart Styles */
+
 .stats-details {
   display: block;
 }
@@ -184,7 +184,6 @@
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  /* background: var(--gradient-primary); */
   box-shadow: var(--shadow);
   min-height: 20px;
 }
@@ -235,10 +234,8 @@
   width: 16px;
   height: 16px;
   border-radius: 4px;
-  /* background: var(--gradient-primary); */
 }
 
-/* Word Sets Styles */
 .word-set {
   background: var(--surface);
   border-radius: 12px;
@@ -300,7 +297,6 @@
   align-items: center;
 }
 
-/* Основные кнопки в едином стиле */
 .btn-add-word,
 .btn-delete-set,
 .btn-expand {
@@ -342,7 +338,7 @@
   background: var(--primary-dark);
 }
 
-/* Words List */
+
 .words-list {
   background: var(--background);
   border-top: 1px solid var(--border);
@@ -361,7 +357,7 @@
   }
 }
 
-/* Word Item */
+
 .word-item {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -404,7 +400,7 @@
   gap: 0.5rem;
 }
 
-/* Кнопки действий в едином стиле */
+
 .btn-edit,
 .btn-delete,
 .btn-save,
@@ -434,7 +430,7 @@
   box-shadow: var(--shadow-lg);
 }
 
-/* Вторичный стиль для кнопки отмены */
+
 .btn-cancel {
   background: var(--text-secondary);
 }
@@ -443,14 +439,11 @@
   background: #4b5563;
 }
 
-/* Word Edit Form */
 .word-edit {
   display: flex;
   align-items: center;
   gap: 1rem;
 }
-
-/* Добавьте эти стили в ваш CSS файл */
 
 .word-main {
   display: flex;
@@ -481,7 +474,6 @@
   font-style: italic;
 }
 
-/* Обновим word-edit для трех полей */
 .word-edit {
   display: flex;
   flex-direction: column;
@@ -499,7 +491,6 @@
   width: 100%;
   font-weight: 500;
 }
-/* User Management Styles */
 .user-management {
   max-width: 1200px;
   margin: 0 auto;
@@ -697,7 +688,7 @@
   transform: none;
 }
 
-/* Responsive */
+
 @media (max-width: 768px) {
   .user-card {
     flex-direction: column;
@@ -757,7 +748,7 @@
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-/* Empty States */
+
 .no-data,
 .no-words {
   text-align: center;
@@ -775,7 +766,6 @@
   font-size: 1.1rem;
 }
 
-/* Loading and Error States */
 .loading-container {
   display: flex;
   justify-content: center;
@@ -829,7 +819,6 @@
   box-shadow: var(--shadow-lg);
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
   .admin-statistics,
   .word-sets {
@@ -946,14 +935,13 @@
   }
 }
 
-/* Focus states for accessibility */
+
 button:focus,
 input:focus {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
 
-/* Selection styles */
 ::selection {
   background: rgba(59, 130, 246, 0.2);
 }

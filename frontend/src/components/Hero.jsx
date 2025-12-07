@@ -3,19 +3,15 @@ import { Link } from 'react-router-dom';
 import './Hero.css';
 
 const Hero = ({ user }) => {
-  // Дефолтная аватарка (такая же как в UserProfile)
   const defaultAvatar = 'https://media.istockphoto.com/id/1495088043/ru/%D0%B2%D0%B5%D0%BA%D1%82%D0%BE%D1%80%D0%BD%D0%B0%D1%8F/%D0%B7%D0%BD%D0%B0%D1%87%D0%BE%D0%BA-%D0%BF%D1%80%D0%BE%D1%84%D0%B8%D0%BB%D1%8F-%D0%BF%D0%BE%D0%BB%D1%8C%D0%B7%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D1%8F-%D0%B7%D0%BD%D0%B0%D1%87%D0%BE%D0%BA-%D0%B0%D0%B2%D0%B0%D1%82%D0%B0%D1%80%D0%B0-%D0%B8%D0%BB%D0%B8-%D1%87%D0%B5%D0%BB%D0%BE%D0%B2%D0%B5%D0%BA%D0%B0-%D0%B0%D0%B2%D0%B0%D1%82%D0%B0%D1%80%D0%BA%D0%B0-%D0%BF%D0%BE%D1%80%D1%82%D1%80%D0%B5%D1%82%D0%BD%D1%8B%D0%B9-%D1%81%D0%B8%D0%BC%D0%B2%D0%BE%D0%BB.jpg?s=612x612&w=0&k=20&c=DS9psRxdq8gUIBtTsGzzy1UYI37nag-gCQ33xqtkpPk=';
 
-  // Функция для получения правильного URL аватара (такая же как в UserProfile)
   const getAvatarUrl = (avatarPath) => {
     if (!avatarPath) return defaultAvatar;
     
-    // Если путь уже полный URL, возвращаем как есть
     if (avatarPath.startsWith('http')) {
       return avatarPath;
     }
     
-    // Если путь относительный, добавляем базовый URL
     if (avatarPath.startsWith('/')) {
       return `http://localhost${avatarPath}`;
     }
@@ -25,7 +21,6 @@ const Hero = ({ user }) => {
 
   return (
     <div className="hero">
-      {/* Анимированный фон */}
       <div className="hero-background">
         <div className="floating-shape shape-1"></div>
         <div className="floating-shape shape-2"></div>
@@ -35,7 +30,6 @@ const Hero = ({ user }) => {
 
       <div className="hero-content">
         <div className="hero-text">
-          {/* Блок приветствия для залогиненного пользователя */}
           {user ? (
             <div className="user-welcome">
               <div className="user-avatar-large">
@@ -68,7 +62,6 @@ const Hero = ({ user }) => {
               </div>
             </div>
           ) : (
-            /* Стандартный блок для незалогиненных */
             <>
               <h1 className="hero-title">
                 Изучай слова
@@ -132,7 +125,6 @@ const Hero = ({ user }) => {
         </div>
       </div>
 
-      {/* Волны внизу */}
       <div className="waves">
         <div className="wave wave-1"></div>
         <div className="wave wave-2"></div>

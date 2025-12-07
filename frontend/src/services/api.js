@@ -2,7 +2,6 @@ import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost/backend/api';
 
-// Функция для получения токена
 const getToken = () => {
   return localStorage.getItem('token') || sessionStorage.getItem('token');
 };
@@ -15,14 +14,12 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// Interceptor для добавления токена к запросам
 api.interceptors.request.use(
   (config) => {
     const token = getToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    console.log('🚀 Making request to:', config.url);
     return config;
   },
   (error) => {
@@ -32,13 +29,10 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => {
-    console.log('✅ Response received:', response.status);
     return response;
   },
   (error) => {
-    console.error('❌ API Error:', error);
     if (error.response && error.response.status === 401) {
-      // Если 401 - перенаправляем на страницу входа
       localStorage.removeItem('token');
       sessionStorage.removeItem('token');
       window.location.href = '/login';
@@ -50,7 +44,6 @@ api.interceptors.response.use(
 export const authAPI = {
   login: async (credentials) => {
     const response = await api.post('/login.php', credentials);
-    // Сохраняем токен если он есть в ответе
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
     }

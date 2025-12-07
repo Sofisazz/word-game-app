@@ -153,7 +153,6 @@
   opacity: 1;
 }
 
-/* Цветовые схемы для игр */
 .game-link.choice {
   color: #7c3aed;
 }
@@ -249,9 +248,6 @@
   font-weight: 400;
 }
 
-/* WordSetList.css - добавьте эти стили */
-
-/* Модальное окно */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -309,7 +305,6 @@
   justify-content: flex-end;
 }
 
-/* Выбор количества слов */
 .word-count-selector {
   margin-bottom: 1.5rem;
 }
@@ -395,7 +390,6 @@
   margin: 0.25rem 0;
 }
 
-/* Обновленные стили для кнопок игр */
 .game-link {
   width: 100%;
   text-align: left;
@@ -426,7 +420,6 @@
   margin-top: 0.5rem;
 }
 
-/* Адаптивность */
 @media (max-width: 768px) {
   .sets-container {
     padding: 1rem;
@@ -467,7 +460,7 @@
   .games-list {
     gap: 0.5rem;
   }
-} /* Добавьте в ваш CSS файл */
+}
 .xp-earned {
   margin: 1rem 0;
   text-align: center;
@@ -502,7 +495,6 @@
   color: #888;
   margin-bottom: 2rem;
 }
-/* Добавьте в ваш CSS файл */
 .game-timer {
   background: #f8f9fa;
   border: 2px solid #007bff;

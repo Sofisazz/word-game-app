@@ -18,20 +18,18 @@ const AchievementsPage = () => {
       setLoading(true);
       setError('');
       
-      // Получаем пользователя из sessionStorage вместо localStorage
       const userData = sessionStorage.getItem('user');
       let user = null;
       
       if (userData) {
         try {
           user = JSON.parse(userData);
-          console.log('👤 User from sessionStorage:', user);
+          console.log('User from sessionStorage:', user);
         } catch (e) {
           console.error('Error parsing user data:', e);
         }
       }
       
-      // Если не нашли в sessionStorage, пробуем localStorage
       if (!user) {
         const localStorageUser = localStorage.getItem('user');
         if (localStorageUser) {
@@ -50,20 +48,18 @@ const AchievementsPage = () => {
         return;
       }
 
-      console.log('🔄 Fetching achievements for user ID:', user.id);
+      console.log('Fetching achievements for user ID:', user.id);
 
       try {
-        // Получаем достижения и статистику
         const [achievementsResponse, statsResponse] = await Promise.all([
           userAPI.getAllAchievements(user.id),
           userAPI.getStats(user.id)
         ]);
 
-        console.log('✅ Achievements API response:', achievementsResponse.data);
-        console.log('✅ Stats API response:', statsResponse.data);
+        console.log('Achievements API response:', achievementsResponse.data);
+        console.log('Stats API response:', statsResponse.data);
 
         if (achievementsResponse.data.success) {
-          // Проверяем структуру ответа
           const achievementsData = achievementsResponse.data.data || 
                                  achievementsResponse.data.achievements || 
                                  [];
@@ -71,15 +67,15 @@ const AchievementsPage = () => {
                                      achievementsResponse.data.userAchievements || 
                                      [];
           
-          console.log('🎯 Achievements data:', achievementsData.length, 'items');
-          console.log('🎯 User achievements:', userAchievementsData);
+          console.log('Achievements data:', achievementsData.length, 'items');
+          console.log('User achievements:', userAchievementsData);
           
           setAchievements(achievementsData);
           setUserAchievements(userAchievementsData);
           
           if (achievementsData.length > 0) {
-            console.log('🎯 First achievement:', achievementsData[0]);
-            console.log('🔍 Does user have first achievement?', 
+            console.log('First achievement:', achievementsData[0]);
+            console.log('Does user have first achievement?', 
               userAchievementsData.includes(achievementsData[0].id) || 
               userAchievementsData.some(ua => ua.achievement_id === achievementsData[0].id)
             );
@@ -100,25 +96,22 @@ const AchievementsPage = () => {
       }
 
     } catch (err) {
-      console.error('❌ General error fetching achievements:', err);
+      console.error('General error fetching achievements:', err);
       setError('Ошибка загрузки данных: ' + (err.message || 'Неизвестная ошибка'));
     } finally {
       setLoading(false);
     }
   };
 
-  // Остальной код компонента остается без изменений...
   const hasAchievement = (achievementId) => {
     const achievementIdStr = String(achievementId);
     
-    // Проверяем разные форматы данных
+
     let hasAchievement = false;
     
     if (Array.isArray(userAchievements)) {
-      // Если это массив ID
       hasAchievement = userAchievements.some(id => String(id) === achievementIdStr);
       
-      // Если это массив объектов с achievement_id
       if (!hasAchievement) {
         hasAchievement = userAchievements.some(ua => {
           if (ua && typeof ua === 'object') {
@@ -129,7 +122,7 @@ const AchievementsPage = () => {
       }
     }
     
-    console.log(`🔍 Checking achievement ${achievementId}:`, {
+    console.log(`Checking achievement ${achievementId}:`, {
       userAchievements,
       achievementIdStr,
       hasAchievement
@@ -174,10 +167,6 @@ const AchievementsPage = () => {
   };
 
   const getDisplayIcon = (achievement, unlocked) => {
-    // Всегда показываем картинку или иконку, даже для заблокированных достижений
-    // Для заблокированных просто добавляем класс locked и значок замка поверх
-
-    // Если есть картинка в image_url, используем ее
     if (achievement.image_url) {
       return (
         <div className={`achievement-image ${unlocked ? '' : 'locked'}`}>
@@ -186,7 +175,6 @@ const AchievementsPage = () => {
             alt={achievement.name}
             className="achievement-img"
             onError={(e) => {
-              // Если картинка не загружается, показываем иконку
               console.error('Failed to load image:', achievement.image_url);
               e.target.style.display = 'none';
               const fallback = e.target.parentNode.querySelector('.achievement-fallback-icon');
@@ -205,7 +193,6 @@ const AchievementsPage = () => {
       );
     }
 
-    // Если нет картинки, используем emoji иконку
     return (
       <div className={`achievement-emoji ${unlocked ? '' : 'locked'}`}>
         {achievement.icon || '🏆'}
@@ -232,7 +219,7 @@ const AchievementsPage = () => {
   return (
     <div className="achievements-page">
       <div className="achievements-header">
-        <h1>🎖️ Достижения</h1>
+        <h1>Достижения</h1>
         <p>Зарабатывайте достижения, играя и улучшая свои навыки!</p>
        
         <div className="achievements-stats">
@@ -306,7 +293,7 @@ const AchievementsPage = () => {
                   
                   {unlocked && (
                     <div className="achievement-unlocked">
-                      <span className="unlocked-text">🎉 Получено!</span>
+                      <span className="unlocked-text">Получено!</span>
                     </div>
                   )}
                 </div>

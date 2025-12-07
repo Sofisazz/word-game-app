@@ -49,7 +49,7 @@ const EditProfileModal = ({ user, defaultAvatar, onClose, onUpdate }) => {
         console.log('Ответ загрузки аватара:', uploadResponse.data);
         
         if (uploadResponse.data.success) {
-          avatarUrl = uploadResponse.data.avatar_url; // '/backend/uploads/avatars/avatar_1_123456.jpg'
+          avatarUrl = uploadResponse.data.avatar_url; 
           console.log('Новый URL аватара:', avatarUrl);
         } else {
           throw new Error(uploadResponse.data.error || 'Ошибка загрузки фото');
@@ -69,7 +69,7 @@ const EditProfileModal = ({ user, defaultAvatar, onClose, onUpdate }) => {
         const updatedUser = {
           ...user,
           display_name: formData.display_name || user.username,
-          avatar: avatarUrl // Важно: используем avatarUrl, а не user.avatar
+          avatar: avatarUrl
         };
 
         console.log('Обновленный пользователь:', updatedUser);
@@ -110,7 +110,6 @@ const EditProfileModal = ({ user, defaultAvatar, onClose, onUpdate }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="edit-profile-form">
-          {/* Аватар */}
           <div className="avatar-section">
             <label>Аватар</label>
             <div className="avatar-preview" onClick={triggerFileInput} style={{ cursor: 'pointer' }}>
@@ -122,7 +121,7 @@ const EditProfileModal = ({ user, defaultAvatar, onClose, onUpdate }) => {
                   console.error('Ошибка загрузки превью:', previewAvatar);
                   e.target.src = defaultAvatar;
                 }}
-                onLoad={() => console.log('✅ Превью загружено:', previewAvatar)}
+                onLoad={() => console.log('Превью загружено:', previewAvatar)}
               />
             </div>
             
@@ -157,7 +156,6 @@ const EditProfileModal = ({ user, defaultAvatar, onClose, onUpdate }) => {
             </div>
           </div>
 
-          {/* Имя для отображения */}
           <div className="form-group">
             <label htmlFor="display_name">Имя для отображения</label>
             <input
@@ -171,7 +169,6 @@ const EditProfileModal = ({ user, defaultAvatar, onClose, onUpdate }) => {
             />
           </div>
 
-          {/* Email (только для просмотра) */}
           <div className="form-group">
             <label>Email</label>
             <input

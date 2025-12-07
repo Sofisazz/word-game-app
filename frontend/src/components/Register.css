@@ -1,4 +1,3 @@
-/* Анимация дрожания */
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
   10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
@@ -9,7 +8,6 @@
   animation: shake 0.5s ease-in-out;
 }
 
-/* Стили для ошибок */
 .form-group input.error-input {
   border-color: var(--error) !important;
   background-color: rgba(239, 68, 68, 0.1) !important;
@@ -20,7 +18,6 @@
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3) !important;
 }
 
-/* Сообщения об ошибках */
 .error-message {
   color: var(--error);
   font-size: 0.875rem;
@@ -42,7 +39,6 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Спиннер для кнопки */
 .spinner {
   display: inline-block;
   width: 16px;
@@ -58,7 +54,6 @@
   to { transform: rotate(360deg); }
 }
 
-/* Требования к паролю */
 .password-requirements {
   margin: 1rem 0;
   padding: 1rem;
@@ -88,7 +83,6 @@
   text-decoration: line-through;
 }
 
-/* Адаптивность */
 @media (max-width: 768px) {
   .auth-container {
     margin: 1rem;

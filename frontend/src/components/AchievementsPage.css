@@ -1,4 +1,4 @@
-/* AchievementsPage.css */
+
 .achievements-page {
   max-width: 1200px;
   margin: 0 auto;
@@ -38,21 +38,14 @@
   color: #4a90e2;
 }
 
-.stat-label {
-  font-size: 14px;
-  color: #666;
-}
+
 
 .achievements-categories h2 {
   color: #333;
   margin-bottom: 20px;
 }
 
-.achievements-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-}
+
 
 .achievement-card {
   background: white;

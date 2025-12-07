@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { adminAPI } from '../services/api';
-
+import './WordSets.css'
 const WordSets = () => {
   const [wordSets, setWordSets] = useState([]);
   const [editingWord, setEditingWord] = useState(null);
@@ -25,33 +25,26 @@ const WordSets = () => {
     description: '' 
   });
 
-  // Функция для создания нового набора
   const createNewSet = async () => {
     try {
       if (!newSet.name.trim()) {
         alert('Пожалуйста, введите название набора');
         return;
       }
-
-      console.log('➕ Создание нового набора...');
       const response = await adminAPI.createWordSet({
         name: newSet.name,
         description: newSet.description || null
       });
 
       if (response.data.success) {
-        // Обновляем список наборов
         await fetchWordSets();
-        // Закрываем модальное окно и сбрасываем форму
         setShowCreateModal(false);
         setNewSet({ name: '', description: '' });
-        console.log('✅ Набор успешно создан');
         alert('Набор слов успешно создан!');
       } else {
         throw new Error(response.data.error);
       }
     } catch (error) {
-      console.error('❌ Ошибка создания набора:', error);
       alert('Ошибка при создании набора: ' + (error.response?.data?.error || error.message));
     }
   };
@@ -65,18 +58,14 @@ const WordSets = () => {
       setLoading(true);
       setError('');
       
-      console.log('📚 Загрузка наборов слов...');
       const response = await adminAPI.getAllWordSets();
-      console.log('✅ Данные загружены:', response.data);
       
       if (response.data && response.data.success) {
-        console.log('✅ Наборы слов загружены:', response.data.sets);
         setWordSets(response.data.sets || []);
       } else {
         throw new Error(response.data?.error || 'Неизвестная ошибка сервера');
       }
     } catch (error) {
-      console.error('❌ Ошибка загрузки наборов слов:', error);
       
       let errorMessage = 'Ошибка при загрузке наборов слов';
       
@@ -94,7 +83,7 @@ const WordSets = () => {
 
   const fetchWordsInSet = async (setId) => {
     try {
-      console.log(`📖 Загрузка слов для набора ${setId}...`);
+      console.log(`Загрузка слов для набора ${setId}...`);
       const response = await adminAPI.getWordsInSet(setId);
       
       if (response.data.success) {
@@ -105,7 +94,7 @@ const WordSets = () => {
         ));
       }
     } catch (error) {
-      console.error(`❌ Ошибка загрузки слов для набора ${setId}:`, error);
+      console.error(`Ошибка загрузки слов для набора ${setId}:`, error);
     }
   };
 
@@ -131,10 +120,7 @@ const WordSets = () => {
   };
 
   const saveEdit = async (setId, wordId) => {
-    try {
-      console.log(`💾 Сохранение слова ${wordId}...`);
-      
-      // Проверяем, что обязательные поля не пустые
+    try {    
       if (!editedWord.original_word.trim() || !editedWord.translation.trim()) {
         alert('Пожалуйста, заполните обязательные поля');
         return;
@@ -161,12 +147,10 @@ const WordSets = () => {
             : set
         ));
         setEditingWord(null);
-        console.log('✅ Слово успешно обновлено');
       } else {
         throw new Error(response.data.error);
       }
     } catch (error) {
-      console.error('❌ Ошибка сохранения слова:', error);
       alert('Ошибка при сохранении слова: ' + (error.response?.data?.error || error.message));
     }
   };
@@ -181,40 +165,33 @@ const WordSets = () => {
     }
 
     try {
-      console.log(`🗑️ Удаление слова ${wordId}...`);
       const response = await adminAPI.deleteWord(wordId);
       
       if (response.data.success) {
-        // Обновляем счетчик и удаляем слово из списка
         setWordSets(prev => prev.map(set => 
           set.id === setId 
             ? {
                 ...set,
                 words: set.words?.filter(w => w.id !== wordId),
-                word_count: (set.word_count || 1) - 1 // Уменьшаем счетчик
+                word_count: (set.word_count || 1) - 1 
               }
             : set
         ));
-        console.log('✅ Слово успешно удалено');
       } else {
         throw new Error(response.data.error);
       }
     } catch (error) {
-      console.error('❌ Ошибка удаления слова:', error);
       alert('Ошибка при удалении слова: ' + (error.response?.data?.error || error.message));
     }
   };
 
-  // Открыть модальное окно для добавления слова
   const openAddWordModal = (setId) => {
     setCurrentSetId(setId);
     setNewWord({ original_word: '', translation: '', example_sentence: '' });
     setShowAddWordModal(true);
   };
 
-  // Добавить новое слово через модальное окно
   const addNewWord = async () => {
-    // Проверяем обязательные поля
     if (!newWord.original_word.trim() || !newWord.translation.trim()) {
       alert('Пожалуйста, заполните обязательные поля: слово и перевод');
       return;
@@ -230,32 +207,29 @@ const WordSets = () => {
       });
 
       if (response.data.success) {
-        // Создаем временный объект слова с id из ответа
         const newWordObj = {
-          id: response.data.word_id, // ID из ответа сервера
+          id: response.data.word_id, 
           word_set_id: currentSetId,
           original_word: newWord.original_word.trim(),
           translation: newWord.translation.trim(),
           example_sentence: newWord.example_sentence.trim() || ''
         };
 
-        // Обновляем счетчик слов в наборе и добавляем слово в массив
+
         setWordSets(prev => prev.map(set => {
           if (set.id === currentSetId) {
-            // Проверяем, что words существует
+
             const currentWords = set.words || [];
             return { 
               ...set, 
               word_count: (set.word_count || 0) + 1,
-              words: [...currentWords, newWordObj] // Добавляем новое слово
+              words: [...currentWords, newWordObj] 
             };
           }
           return set;
         }));
         
-        console.log('✅ Новое слово успешно добавлено');
-        
-        // Закрываем модальное окно и сбрасываем форму
+
         setShowAddWordModal(false);
         setNewWord({ original_word: '', translation: '', example_sentence: '' });
         
@@ -264,7 +238,6 @@ const WordSets = () => {
         throw new Error(response.data.error);
       }
     } catch (error) {
-      console.error('❌ Ошибка добавления слова:', error);
       alert('Ошибка при добавлении слова: ' + (error.response?.data?.error || error.message));
     }
   };
@@ -275,17 +248,14 @@ const WordSets = () => {
     }
 
     try {
-      console.log(`🗑️ Удаление набора ${setId}...`);
       const response = await adminAPI.deleteWordSet(setId);
       
       if (response.data.success) {
         setWordSets(prev => prev.filter(set => set.id !== setId));
-        console.log('✅ Набор успешно удален');
       } else {
         throw new Error(response.data.error);
       }
     } catch (error) {
-      console.error('❌ Ошибка удаления набора:', error);
       alert('Ошибка при удалении набора: ' + (error.response?.data?.error || error.message));
     }
   };
@@ -444,7 +414,6 @@ const WordSets = () => {
         ))
       )}
 
-      {/* Модальное окно для создания нового набора */}
       {showCreateModal && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -506,7 +475,6 @@ const WordSets = () => {
         </div>
       )}
 
-      {/* Модальное окно для добавления нового слова */}
       {showAddWordModal && (
         <div className="modal-overlay">
           <div className="modal-content">

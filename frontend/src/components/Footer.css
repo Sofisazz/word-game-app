@@ -89,7 +89,6 @@
   font-size: 0.9rem;
 }
 
-/* Адаптивность */
 @media (max-width: 768px) {
   .footer-content {
     grid-template-columns: 1fr 1fr;

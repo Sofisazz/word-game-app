@@ -165,35 +165,57 @@ const PracticeWrongWords = () => {
     }
   };
 
-  // Отметить слово как правильное
-  const markAsCorrect = async (wordId) => {
-    try {
-      const wordToDelete = wrongAnswers.find(w => (w.word_id || w.id) === wordId);
-      if (!wordToDelete) return;
 
-      await wrongWordsAPI.deleteWrongWord(wordToDelete.id || wordToDelete.word_id);
+const markAsCorrect = async (wordId) => {
+  try {
+    // Находим запись в wrongAnswers
+    // wordId - это id слова из таблицы words (word_id)
+    // Нам нужно найти запись где word.word_id === wordId
+    const wordToDelete = wrongAnswers.find(w => w.word_id === wordId);
+    
+    if (!wordToDelete) {
+      console.error('Слово не найдено в wrongAnswers:', wordId);
+      return;
+    }
+
+    const wrongAnswerId = wordToDelete.id; // Это id записи в таблице wrong_answers
+    
+    console.log('Удаление слова:', {
+      wordId: wordId,
+      wrongAnswerId: wrongAnswerId,
+      wordData: wordToDelete
+    });
+
+    // Удаляем запись из wrong_answers по ее ID
+    await wrongWordsAPI.deleteWrongWord(wrongAnswerId);
+    
+    // ОБНОВЛЕННАЯ ЛОГИКА ФИЛЬТРАЦИИ:
+    // Удаляем запись по id записи wrong_answers, а не по word_id
+    setWrongAnswers(prev => prev.filter(word => word.id !== wrongAnswerId));
+    
+    // Если мы в режиме практики, обновляем practiceWords
+    if (mode) {
+      // В practiceWords id - это word_id, поэтому фильтруем по word_id
+      setPracticeWords(prev => prev.filter(word => word.id !== wordId));
       
-      setWrongAnswers(prev => prev.filter(word => 
-        (word.id || word.word_id) !== wordId
-      ));
-      
-      if (mode) {
-        setPracticeWords(prev => prev.filter(word => word.id !== wordId));
-        
-        const currentWord = practiceWords[currentIndex];
-        if (currentWord && currentWord.id === wordId) {
-          if (currentIndex < practiceWords.length - 1) {
-            setCurrentIndex(currentIndex + 1);
-          } else {
-            setIsFinished(true);
-          }
+      // Проверяем текущее слово
+      const currentWord = practiceWords[currentIndex];
+      if (currentWord && currentWord.id === wordId) {
+        if (currentIndex < practiceWords.length - 1) {
+          setCurrentIndex(currentIndex + 1);
+        } else {
+          setIsFinished(true);
         }
       }
-    } catch (error) {
-      console.error('Ошибка удаления слова:', error);
-      setError('Не удалось отметить слово как выученное');
     }
-  };
+    
+    console.log('Слово успешно удалено из списка для повторения');
+    
+  } catch (error) {
+    console.error('Ошибка удаления слова:', error);
+    setError('Не удалось отметить слово как выученное');
+  }
+};
 
   // Переход к следующему слову
   const nextWord = () => {
@@ -383,7 +405,7 @@ const PracticeWrongWords = () => {
             
             <div className="words-list">
               {currentWords.map(word => (
-                <div key={word.id || word.word_id} className="word-item">
+                <div onClick={()=>alert('Выбери игру для обучения')} key={word.id || word.word_id} className="word-item">
                   <div className="word-content">
                     <span className="original">{word.original_word}</span>
                     <span className="translation">{word.translation}</span>
@@ -393,12 +415,13 @@ const PracticeWrongWords = () => {
                   </div>
                   <div className="word-actions">
                     <button 
-                      onClick={() => markAsCorrect(word.word_id || word.id)}
-                      className="btn-mark-correct"
-                      title="Отметить как выученное"
-                    >
-                      ✓
-                    </button>
+  onClick={(e) =>{markAsCorrect(word.word_id);
+  e.stopPropagation();}}  
+  className="btn-mark-correct"
+  title="Отметить как выученное"
+>
+  ✓
+</button>
                   </div>
                 </div>
               ))}
@@ -614,6 +637,8 @@ const PracticeWrongWords = () => {
           <form onSubmit={handleTypingAnswer} className="typing-form">
             <input
               type="text"
+              maxLength={100}
+
               value={userInput}
               onChange={(e) => setUserInput(e.target.value)}
               placeholder="Введите перевод на русском..."
@@ -639,12 +664,12 @@ const PracticeWrongWords = () => {
           >
             Показать ответ
           </button>
-          <button 
-            onClick={() => markAsCorrect(currentWord.id)}
-            className="btn btn-mark-learned"
-          >
-            Я выучил это слово
-          </button>
+         <button 
+  onClick={() => markAsCorrect(currentWord.id)}  // currentWord.id = word_id
+  className="btn btn-mark-learned"
+>
+  Я выучил это слово
+</button>
           <button 
             onClick={() => setMode(null)}
             className="btn btn-exit"

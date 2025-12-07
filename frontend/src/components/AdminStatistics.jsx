@@ -1,4 +1,3 @@
-// components/admin/AdminStatistics.js
 import React, { useState, useEffect } from 'react';
 import { adminAPI } from '../services/api';
 
@@ -38,7 +37,7 @@ const AdminStatistics = () => {
         setError('Не удалось загрузить статистику');
       }
     } catch (error) {
-      console.error('❌ Ошибка загрузки статистики:', error);
+      console.error('Ошибка загрузки статистики:', error);
       setError(error.response?.data?.error || 'Ошибка при загрузке статистики');
     } finally {
       setLoading(false);
@@ -58,13 +57,11 @@ const AdminStatistics = () => {
     return gameTypes[gameType] || gameType;
   };
 
-  // Функция для расчета высоты столбцов графика
   const calculateBarHeight = (value, maxValue) => {
     if (maxValue === 0) return 0;
     return (value / maxValue) * 100;
   };
 
-  // Находим максимальное значение для масштабирования графика
   const maxGameCount = popularGames.length > 0 
     ? Math.max(...popularGames.map(game => game.count || 0))
     : 0;
@@ -95,7 +92,6 @@ const AdminStatistics = () => {
 
       </div>
       
-      {/* Основные метрики */}
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-icon">👥</div>
@@ -122,9 +118,7 @@ const AdminStatistics = () => {
         </div>
       </div>
 
-      {/* График и статистика игр */}
       <div className="stats-details">
-        {/* График популярности игр */}
         <div className="detail-section chart-section">
           <h3>Популярность игр</h3>
           {popularGames.length > 0 ? (
@@ -139,7 +133,7 @@ const AdminStatistics = () => {
                           height: `${calculateBarHeight(game.count || 0, maxGameCount)}%`,
                           background: `linear-gradient(to top, #6366f1, ${interpolateColor(
                             game.count || 0,
-                            0, // или minVal, но лучше 0 для визуальной плавности
+                            0, 
                             maxGameCount,
                             '#6366f1',
                             '#ef4444'
@@ -181,14 +175,11 @@ const AdminStatistics = () => {
 };
 
 
-// Интерполирует между двумя цветами в формате #RRGGBB на основе значения
 const interpolateColor = (value, minVal, maxVal, colorMin, colorMax) => {
   if (maxVal === minVal) return colorMin;
 
-  // Нормализуем значение от 0 до 1
   const ratio = (value - minVal) / (maxVal - minVal);
 
-  // Парсим HEX в RGB
   const hexToRgb = (hex) => {
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
@@ -199,12 +190,10 @@ const interpolateColor = (value, minVal, maxVal, colorMin, colorMax) => {
   const rgbMin = hexToRgb(colorMin);
   const rgbMax = hexToRgb(colorMax);
 
-  // Интерполируем
   const r = Math.round(rgbMin.r + ratio * (rgbMax.r - rgbMin.r));
   const g = Math.round(rgbMin.g + ratio * (rgbMax.g - rgbMin.g));
   const b = Math.round(rgbMin.b + ratio * (rgbMax.b - rgbMin.b));
 
-  // Возвращаем в HEX
   return `#${[r, g, b].map(x => x.toString(16).padStart(2, '0')).join('')}`;
 };
 

@@ -1,6 +1,3 @@
-/* ===== LOGIN SPECIFIC STYLES ===== */
-
-/* Основные стили для логина */
 .auth-container {
   max-width: 440px;
   margin: 3rem auto;
@@ -49,7 +46,6 @@
   font-size: 0.95rem;
 }
 
-/* Обычное состояние поля */
 .form-group input {
   padding: 1rem;
   border: 2px solid var(--border);
@@ -66,13 +62,11 @@
   transform: translateY(-1px);
 }
 
-/* Стили для ошибок - КРАСНАЯ ОБВОДКА */
 .form-group input.error-input {
   border-color: var(--error) !important;
   background-color: rgba(239, 68, 68, 0.1) !important;
 }
 
-/* Специальный стиль для ошибки пароля */
 .form-group input.password-error {
   border-color: var(--error) !important;
   border-width: 2px !important;
@@ -80,7 +74,6 @@
   animation: shake 0.5s ease-in-out;
 }
 
-/* При фокусе на поле с ошибкой */
 .form-group input.error-input:focus,
 .form-group input.password-error:focus {
   border-color: var(--error) !important;
@@ -93,7 +86,6 @@
   20%, 40%, 60%, 80% { transform: translateX(5px); }
 }
 
-/* ВАЖНО: Убираем зеленую обводку полностью для логина */
 .form-group input.valid-input {
   border-color: var(--border) !important;
   background-color: var(--surface) !important;
@@ -104,7 +96,6 @@
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
 }
 
-/* Сообщения об ошибках */
 .password-error-text {
   color: var(--error);
   font-weight: bold;
@@ -128,7 +119,6 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Ссылка восстановления пароля */
 .forgot-password-link {
   text-align: center;
   margin: 1rem 0;
@@ -146,7 +136,6 @@
   text-decoration: underline;
 }
 
-/* Стили для успешного входа */
 .success-message {
   color: var(--success);
   font-size: 0.875rem;
@@ -157,7 +146,6 @@
   border-left: 3px solid var(--success);
 }
 
-/* Подсказки */
 .field-hint {
   color: var(--success);
   font-size: 0.75rem;
@@ -171,7 +159,6 @@
   font-style: normal;
 }
 
-/* Ссылка на регистрацию */
 .auth-container > p {
   margin-top: 1.5rem;
   text-align: center;
@@ -190,7 +177,7 @@
   text-decoration: underline;
 }
 
-/* Адаптивность */
+
 @media (max-width: 768px) {
   .auth-container {
     margin: 1rem;

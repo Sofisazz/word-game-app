@@ -17,29 +17,23 @@ const Login = ({ onLogin }) => {
   const [passwordError, setPasswordError] = useState(false);
   const navigate = useNavigate();
 
-  // Список запрещенных символов для имени пользователя
   const forbiddenCharsRegex = /[0-9.,?!*/_+-]/;
 
-  // Функции валидации
   const validateIdentifier = (identifier, forceValidation = false) => {
     if (!forceValidation && !touched.identifier) return '';
     if (!identifier.trim()) return 'Введите имя пользователя или email';
     
-    // Проверяем, похоже ли на email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const isEmail = emailRegex.test(identifier);
     
     if (!isEmail) {
-      // Если не email, проверяем как username
       if (identifier.length < 2) return 'Имя пользователя должно быть не короче 2 символов';
       if (identifier.length > 30) return 'Имя пользователя не должно превышать 30 символов';
       
-      // Проверяем на запрещенные символы
       if (forbiddenCharsRegex.test(identifier)) {
         return 'Имя не должно содержать цифры, знаки препинания и специальные символы';
       }
       
-      // Проверяем на допустимые символы
       const validCharsRegex = /^[a-zA-Zа-яА-ЯёЁ\s-]+$/;
       if (!validCharsRegex.test(identifier)) {
         return 'Имя должно содержать только буквы, пробелы и дефисы';
@@ -53,7 +47,6 @@ const Login = ({ onLogin }) => {
     if (!forceValidation && !touched.password) return '';
     if (!password) return 'Введите пароль';
     
-    // Если была ошибка "Неверный пароль", показываем ее
     if (passwordError) {
       return 'Неверный пароль';
     }
@@ -73,26 +66,21 @@ const Login = ({ onLogin }) => {
   };
 
   const handleIdentifierChange = (value) => {
-    // Сбрасываем ошибку пароля при изменении логина
     if (passwordError) {
       setPasswordError(false);
     }
     
-    // Если значение не похоже на email, фильтруем запрещенные символы
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const looksLikeEmail = emailRegex.test(value);
     
     let cleanedValue = value;
     
     if (!looksLikeEmail && value.length > 0) {
-      // Определяем, пытаются ли ввести email (есть @ в начале или середине)
       const hasAtSymbol = value.includes('@');
       
       if (!hasAtSymbol) {
-        // Если нет символа @, значит это точно не email - фильтруем
         cleanedValue = value.replace(forbiddenCharsRegex, '');
       } else {
-        // Если есть @, возможно это email - не фильтруем
         cleanedValue = value;
       }
     }
@@ -102,7 +90,6 @@ const Login = ({ onLogin }) => {
       identifier: cleanedValue
     });
     
-    // Очищаем ошибку при вводе
     if (touched.identifier && errors.identifier) {
       setErrors(prev => ({
         ...prev,
@@ -112,7 +99,6 @@ const Login = ({ onLogin }) => {
   };
 
   const handlePasswordChange = (value) => {
-    // Сбрасываем ошибку пароля при изменении пароля
     if (passwordError) {
       setPasswordError(false);
     }
@@ -122,7 +108,6 @@ const Login = ({ onLogin }) => {
       password: value
     });
     
-    // Очищаем ошибку при вводе
     if (touched.password && errors.password) {
       setErrors(prev => ({
         ...prev,
@@ -144,7 +129,6 @@ const Login = ({ onLogin }) => {
   const handleBlur = (e) => {
     const { name, value } = e.target;
     
-    // Помечаем поле как "затронутое"
     if (!touched[name]) {
       setTouched(prev => ({
         ...prev,
@@ -152,7 +136,6 @@ const Login = ({ onLogin }) => {
       }));
     }
     
-    // Валидируем поле
     let error = '';
     switch (name) {
       case 'identifier':
@@ -176,10 +159,8 @@ const Login = ({ onLogin }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Сбрасываем ошибку пароля перед отправкой
     setPasswordError(false);
     
-    // Проверяем форму
     if (!validateForm()) {
       return;
     }
@@ -188,12 +169,11 @@ const Login = ({ onLogin }) => {
     setErrors(prev => ({ ...prev, form: '' }));
 
     try {
-      console.log('🔄 Отправка данных для входа:', {
+      console.log('Отправка данных для входа:', {
         identifier: formData.identifier,
         password: '***'
       });
       
-      // Проверяем, похоже ли на email
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       const isEmail = emailRegex.test(formData.identifier);
       
@@ -201,13 +181,10 @@ const Login = ({ onLogin }) => {
         password: formData.password
       };
       
-      // Если похоже на email, отправляем как email, иначе как username
       if (isEmail) {
         loginPayload.email = formData.identifier;
-        console.log('📧 Отправляем как email');
       } else {
         loginPayload.username = formData.identifier;
-        console.log('👤 Отправляем как username');
       }
       
       const response = await fetch('http://localhost/backend/api/login.php', {
@@ -220,28 +197,24 @@ const Login = ({ onLogin }) => {
       });
 
       const data = await response.json();
-      console.log('✅ Ответ от сервера:', data);
+      console.log('Ответ от сервера:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Ошибка входа');
       }
 
       if (data.success) {
-        // СОХРАНЯЕМ ПОЛЬЗОВАТЕЛЯ В LOCALSTORAGE
         localStorage.setItem('user', JSON.stringify(data.user));
-        console.log('💾 User saved to localStorage:', data.user);
+        console.log('User saved to localStorage:', data.user);
         
-        // Передаем данные пользователя в onLogin
         const userData = await onLogin(data.user);
-        console.log('✅ Пользователь установлен:', userData);
+        console.log('Пользователь установлен:', userData);
         
-        // Показываем успешное сообщение
         setErrors(prev => ({
           ...prev,
           form: 'success: Вход выполнен успешно!'
         }));
         
-        // Редирект через небольшую задержку для отображения сообщения
         setTimeout(() => {
           if (userData.role === 'admin') {
             navigate('/admin');
@@ -254,9 +227,8 @@ const Login = ({ onLogin }) => {
         throw new Error(data.error || 'Ошибка входа');
       }
     } catch (err) {
-      console.error('❌ Ошибка входа:', err);
+      console.error('Ошибка входа:', err);
       
-      // Более понятные сообщения об ошибках
       let errorMessage = err.message || 'Произошла ошибка при входе';
       let isPasswordError = false;
       
@@ -272,9 +244,8 @@ const Login = ({ onLogin }) => {
       }
       
       if (isPasswordError) {
-        console.log('🔄 Устанавливаем ошибку пароля');
+        console.log('Устанавливаем ошибку пароля');
         
-        // Устанавливаем все состояния сразу в правильном порядке
         setPasswordError(true);
         setTouched(prev => ({
           ...prev,
@@ -297,27 +268,23 @@ const Login = ({ onLogin }) => {
   };
 
   const getInputClassName = (fieldName) => {
-    console.log(`📊 getInputClassName для ${fieldName}:`, {
+    console.log(`getInputClassName для ${fieldName}:`, {
       errors: errors[fieldName],
       touched: touched[fieldName],
       passwordError
     });
     
-    // Для поля пароля
     if (fieldName === 'password') {
-      // Сначала проверяем passwordError
       if (passwordError && touched.password) {
-        console.log('🔴 Возвращаем password-error для поля пароля');
+        console.log('Возвращаем password-error для поля пароля');
         return 'password-error';
       }
-      // Затем обычные ошибки
       if (errors.password && touched.password) {
-        console.log('🔴 Возвращаем error-input для поля пароля');
+        console.log('Возвращаем error-input для поля пароля');
         return 'error-input';
       }
     }
     
-    // Для других полей
     if (errors[fieldName] && touched[fieldName]) {
       return 'error-input';
     }
@@ -325,15 +292,12 @@ const Login = ({ onLogin }) => {
     return '';
   };
 
-  // Получаем подсказку для поля
   const getFieldHint = (fieldName) => {
-    // Не показываем подсказку, если есть ошибка
     if (errors[fieldName] || (fieldName === 'password' && passwordError)) return null;
     
     if (!touched[fieldName]) return null;
     
     if (fieldName === 'identifier' && formData.identifier) {
-      // Проверяем, похоже ли на email
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (emailRegex.test(formData.identifier)) {
         return <div className="field-hint">✓ Используется email для входа</div>;
@@ -351,7 +315,6 @@ const Login = ({ onLogin }) => {
     return null;
   };
 
-  // Определяем placeholder для поля identifier
   const getIdentifierPlaceholder = () => {
     if (formData.identifier.includes('@')) {
       return 'example@domain.com';
@@ -394,10 +357,8 @@ const Login = ({ onLogin }) => {
             className={getInputClassName('password')}
           />
           
-          {/* Подсказка */}
           {getFieldHint('password')}
           
-          {/* Сообщение об ошибке пароля */}
           {(errors.password || passwordError) && touched.password && (
             <div className="error-message password-error-text">
               {errors.password || 'Неверный пароль'}

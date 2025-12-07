@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { wordSetsAPI, userAPI } from '../services/api';
-
+import './Games.css'
 const ChoiceGame = () => { 
   const { setId } = useParams();
   const navigate = useNavigate();
@@ -21,7 +21,7 @@ const ChoiceGame = () => {
   const [currentTime, setCurrentTime] = useState(0);
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [xpEarned, setXpEarned] = useState(0);
-  const [wordResults, setWordResults] = useState([]); // ДОБАВЬТЕ ЭТО
+  const [wordResults, setWordResults] = useState([]);
   
   const startTimeRef = useRef(null);
   const timerRef = useRef(null);
@@ -33,7 +33,6 @@ const ChoiceGame = () => {
   useEffect(() => {
     if (gameWords.length > 0 && !showWordModal && !isFinished) {
       generateOptions();
-      // Запускаем таймер только один раз при старте игры
       if (!startTimeRef.current) {
         startTimeRef.current = Date.now();
         startTimer();
@@ -46,6 +45,15 @@ const ChoiceGame = () => {
       generateOptions();
     }
   }, [currentWordIndex]);
+
+  useEffect(() => {
+  if (isFinished && wordResults.length === gameWords.length) {
+    const timeSpent = currentTime;
+    setTotalTime(timeSpent);
+    stopTimer();
+    saveGameResults(timeSpent);
+  }
+}, [isFinished, wordResults, gameWords.length]);
 
   const startTimer = () => {
     timerRef.current = setInterval(() => {
@@ -92,7 +100,7 @@ const ChoiceGame = () => {
     setXpEarned(0);
     setTotalTime(0);
     setCurrentTime(0);
-    setWordResults([]); // Сбрасываем результаты при старте новой игры
+    setWordResults([]); 
     startTimeRef.current = null;
   };
 
@@ -110,89 +118,73 @@ const ChoiceGame = () => {
     setOptions(allOptions);
   };
 
-  const handleAnswer = (selectedTranslation) => {
-    const currentWord = gameWords[currentWordIndex];
-    const isCorrect = selectedTranslation === currentWord.translation;
-    
-    setSelectedOption(selectedTranslation);
+const handleAnswer = (selectedTranslation) => {
+  const currentWord = gameWords[currentWordIndex];
+  const isCorrect = selectedTranslation === currentWord.translation;
+  
+  setSelectedOption(selectedTranslation);
 
-    if (isCorrect) {
-      setScore(score + 1);
-      setCorrectAnswers(correctAnswers + 1);
+  if (isCorrect) {
+    setScore(score + 1);
+    setCorrectAnswers(correctAnswers + 1);
+  }
+
+  const wordResult = {
+    word_id: currentWord.id,
+    is_correct: isCorrect
+  };
+  
+  setWordResults(prev => [...prev, wordResult]);
+
+  setTimeout(() => {
+    setSelectedOption(null);
+    
+    if (currentWordIndex < gameWords.length - 1) {
+      setCurrentWordIndex(currentWordIndex + 1);
+    } else {
+      setIsFinished(true);
+    }
+  }, 1000);
+};
+
+const saveGameResults = async () => {
+  try {
+    const userData = sessionStorage.getItem('user');
+    const user = userData ? JSON.parse(userData) : null;
+    
+    if (!user) {
+      console.error('No user found in sessionStorage');
+      return;
+    }
+    if (wordResults.length !== gameWords.length) {
+      console.error('Missing results!', {
+        resultsCount: wordResults.length,
+        wordsCount: gameWords.length
+      });
     }
 
-    // Сохраняем результат для этого слова
-    const wordResult = {
-      word_id: currentWord.id,
-      is_correct: isCorrect
+    const gameData = {
+      user_id: user.id,
+      game_type: 'choice',
+      score: score,
+      total_questions: gameWords.length,
+      correct_answers: correctAnswers,
+      words_learned: correctAnswers,
+      time_spent: currentTime, 
+      results: wordResults
     };
+
+    console.log('Sending game data to server:', gameData);
+
+    const response = await userAPI.saveGameResult(gameData);
     
-    // Добавляем в массив результатов
-    setWordResults(prev => [...prev, wordResult]);
-    console.log(`Word result: ${currentWord.original_word} - ${isCorrect ? 'correct' : 'incorrect'}`);
-
-    setTimeout(() => {
-      setSelectedOption(null);
-      
-      if (currentWordIndex < gameWords.length - 1) {
-        setCurrentWordIndex(currentWordIndex + 1);
-      } else {
-        const timeSpent = currentTime;
-        setTotalTime(timeSpent);
-        stopTimer();
-        saveGameResults(timeSpent);
-        setIsFinished(true);
-      }
-    }, 1000);
-  };
-
-  const saveGameResults = async (timeSpent) => {
-    try {
-      const userData = sessionStorage.getItem('user');
-      const user = userData ? JSON.parse(userData) : null;
-      
-      if (!user) {
-        console.error('❌ No user found in sessionStorage');
-        return;
-      }
-
-      console.log('🎮 Saving game results for user:', user.id);
-      console.log('📊 Word results array:', wordResults);
-      
-      // Подсчитываем сколько неправильных ответов
-      const incorrectAnswers = wordResults.filter(r => !r.is_correct).length;
-      console.log('❌ Incorrect answers:', incorrectAnswers);
-
-      const gameData = {
-        user_id: user.id,
-        game_type: 'choice',
-        score: score,
-        total_questions: gameWords.length,
-        correct_answers: correctAnswers,
-        words_learned: correctAnswers,
-        time_spent: timeSpent,
-        results: wordResults // Отправляем массив результатов
-      };
-
-      console.log('📨 Sending game data to server:', gameData);
-
-      const response = await userAPI.saveGameResult(gameData);
-      
-      console.log('📬 Server response:', response);
-      console.log('📬 Response data:', response.data);
-      
-      if (response.data && response.data.success) {
-        setXpEarned(response.data.xp_earned || 0);
-        console.log('✅ Game results saved successfully! XP earned:', response.data.xp_earned);
-      } else {
-        console.error('❌ Failed to save game results:', response.data ? response.data.message : 'No response data');
-      }
-    } catch (err) {
-      console.error('💥 Error saving game results:', err);
-      console.error('💥 Error response:', err.response);
-      console.error('💥 Error message:', err.message);
+    if (response.data && response.data.success) {
+      setXpEarned(response.data.xp_earned || 0);
     }
-  };
+  } catch (err) {
+    console.error('Error saving game results:', err);
+  }
+};
 
   const getButtonClass = (option) => {
     if (selectedOption === null) return 'option-button';
@@ -218,7 +210,7 @@ const ChoiceGame = () => {
     setSelectedOption(null);
     setTotalTime(0);
     setCurrentTime(0);
-    setWordResults([]); // Сбрасываем результаты
+    setWordResults([]); 
     stopTimer();
     startTimeRef.current = null;
   };
@@ -233,7 +225,6 @@ const ChoiceGame = () => {
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
-  // Очистка таймера при размонтировании компонента
   useEffect(() => {
     return () => {
       stopTimer();

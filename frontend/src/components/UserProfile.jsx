@@ -11,43 +11,27 @@ const UserProfile = ({ user, onUserUpdate }) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [currentUser, setCurrentUser] = useState(user);
   
-  // Дефолтная аватарка
-  const defaultAvatar = 'https://img.freepik.com/premium-vector/silver-membership-icon-default-avatar-profile-icon-membership-icon-social-media-user-image-vector-illustration_561158-4195.jpg?semt=ais_se_enriched&w=740&q=80';
+  const defaultAvatar = 'https://media.istockphoto.com/id/1495088043/ru/%D0%B2%D0%B5%D0%BA%D1%82%D0%BE%D1%80%D0%BD%D0%B0%D1%8F/%D0%B7%D0%BD%D0%B0%D1%87%D0%BE%D0%BA-%D0%BF%D1%80%D0%BE%D1%84%D0%B8%D0%BB%D1%8F-%D0%BF%D0%BE%D0%BB%D1%8C%D0%B7%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D1%8F-%D0%B7%D0%BD%D0%B0%D1%87%D0%BE%D0%BA-%D0%B0%D0%B2%D0%B0%D1%82%D0%B0%D1%80%D0%B0-%D0%B8%D0%BB%D0%B8-%D1%87%D0%B5%D0%BB%D0%BE%D0%B2%D0%B5%D0%BA%D0%B0-%D0%B0%D0%B2%D0%B0%D1%82%D0%B0%D1%80%D0%BA%D0%B0-%D0%BF%D0%BE%D1%80%D1%82%D1%80%D0%B5%D1%82%D0%BD%D1%8B%D0%B9-%D1%81%D0%B8%D0%BC%D0%B2%D0%BE%D0%BB.jpg?s=612x612&w=0&k=20&c=DS9psRxdq8gUIBtTsGzzy1UYI37nag-gCQ33xqtkpPk=';
 
   useEffect(() => {
-    console.log('🔄 UserProfile mounted with user:', currentUser);
     fetchUserStats();
     
-    // Слушаем кастомное событие обновления пользователя
     const handleUserUpdated = () => {
-      console.log('📢 User updated event received, refreshing stats...');
-      
-      // Обновляем пользователя из sessionStorage
       const userData = sessionStorage.getItem('user');
       if (userData) {
         const updatedUser = JSON.parse(userData);
-        console.log('🔄 Updated user from sessionStorage:', updatedUser);
         setCurrentUser(updatedUser);
         if (onUserUpdate) {
           onUserUpdate(updatedUser);
         }
       }
       
-      // Запрашиваем свежую статистику с сервера
       fetchUserStats();
     };
-// В UserProfile.js, в useEffect для прослушивания событий:
-const handleXPUpdated = (event) => {
-  console.log('📈 XP updated event received:', event.detail);
-  
-  // Проверяем разные возможные форматы данных
+const handleXPUpdated = (event) => {  
   const eventData = event.detail || event;
   
   if (eventData && eventData.level_info) {
-    // Если в событии есть level_info, обновляем сразу
-    console.log('🎯 Updating level info from game result:', eventData.level_info);
-    
-    // Обновляем stats с новыми данными
     setStats(prevStats => {
       const newStats = {
         ...prevStats,
@@ -60,14 +44,9 @@ const handleXPUpdated = (event) => {
           total_correct_answers: (prevStats?.stats?.total_correct_answers || 0) + (eventData.correct_answers || 0)
         }
       };
-      
-      console.log('📊 Updated stats:', newStats);
       return newStats;
     });
-  } else if (eventData && eventData.event_data) {
-    // Если данные в event_data (как вы настроили на бэкенде)
-    console.log('🎯 Updating from event_data:', eventData.event_data);
-    
+  } else if (eventData && eventData.event_data) {    
     if (eventData.event_data.level_info) {
       setStats(prevStats => ({
         ...prevStats,
@@ -80,8 +59,6 @@ const handleXPUpdated = (event) => {
       }));
     }
   } else {
-    // Иначе запрашиваем свежую статистику
-    console.log('🔄 No level_info in event, fetching fresh stats');
     fetchUserStats();
   }
 };
@@ -95,9 +72,7 @@ const handleXPUpdated = (event) => {
   }, []);
 
   const fetchUserStats = async () => {
-    try {
-      console.log('🔄 Fetching stats for user ID:', currentUser.id);
-      
+    try {      
       setLoading(true);
       setError('');
       
@@ -105,9 +80,7 @@ const handleXPUpdated = (event) => {
       console.log('Full stats response:', response.data);
       
       if (response.data.success) {
-        // Устанавливаем данные как есть с бэкенда
         setStats(response.data.data);
-        console.log('✅ Stats loaded successfully:', response.data.data);
       } else {
         setError(response.data.message || response.data.error || 'Ошибка загрузки статистики');
       }
@@ -130,11 +103,9 @@ const handleXPUpdated = (event) => {
     if (onUserUpdate) {
       onUserUpdate(updatedUser);
     }
-    // Обновляем статистику после редактирования профиля
     fetchUserStats();
   };
 
-  // Функция для отображения иконки/картинки достижения
   const renderAchievementIcon = (achievement) => {
     if (achievement.image_url) {
       return (
@@ -169,22 +140,18 @@ const handleXPUpdated = (event) => {
   if (!stats) return <div className="error">Статистика не найдена</div>;
 
   const { stats: userStats = {}, achievements = [], level_info = {} } = stats;
-  
-  // ВСЕ ДАННЫЕ БЕРЕМ С БЭКЕНДА - НЕ ПЕРЕСЧИТЫВАЕМ!
+
   const currentXP = level_info.total_xp || 0;
   const currentLevel = level_info.level || 1;
   const nextLevelXP = level_info.next_level_xp || 250;
-  const currentLevelXP = level_info.current_xp || 0; // XP в текущем уровне (208 на изображении)
-  const xpNeeded = level_info.xp_needed || 0; // XP до следующего уровня (192 на изображении)
-  const progress = level_info.progress_percentage || 0; // Процент прогресса (83,2% на изображении)
+  const currentLevelXP = level_info.current_xp || 0; 
+  const xpNeeded = level_info.xp_needed || 0; 
+  const progress = level_info.progress_percentage || 0; 
     
   const displayName = currentUser.display_name || currentUser.username;
 
-  console.log('🎮 Current level info from backend:', level_info);
-
   return (
     <div className="profile-container">
-      {/* Кнопка редактирования */}
       <div className="profile-actions">
         <button 
           onClick={() => setShowEditModal(true)}
@@ -226,9 +193,7 @@ const handleXPUpdated = (event) => {
           </div>
           <div className="xp-progress">
             <div className="xp-info">
-              {/* Здесь currentLevelXP = XP в текущем уровне (208) */}
               <span>{currentLevelXP.toFixed(0)} XP</span>
-              {/* Здесь nextLevelXP = сколько всего нужно для след уровня (1250) */}
               <span>{nextLevelXP} XP</span>
             </div>
             <div className="progress-bar">
@@ -239,10 +204,9 @@ const handleXPUpdated = (event) => {
               ></div>
             </div>
             <div className="xp-remaining">
-              {/* xpNeeded = сколько осталось (192) */}
               До следующего уровня: {xpNeeded.toFixed(0)} XP
               {xpNeeded <= 0 && (
-                <span className="level-up-badge">🎉 Уровень повышен!</span>
+                <span className="level-up-badge">Уровень повышен!</span>
               )}
             </div>
             <div className="level-progress-info">
@@ -320,7 +284,6 @@ const handleXPUpdated = (event) => {
         </div>
       </div>
 
-      {/* Модальное окно редактирования */}
       {showEditModal && (
         <EditProfileModal
           user={currentUser}

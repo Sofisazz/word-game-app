@@ -8,7 +8,6 @@ const PracticeBadge = () => {
   useEffect(() => {
     fetchWrongWordsCount();
     
-    // Обновляем счетчик каждые 30 секунд
     const interval = setInterval(fetchWrongWordsCount, 30000);
     
     return () => clearInterval(interval);
@@ -31,7 +30,6 @@ const PracticeBadge = () => {
     }
   };
 
-  // Если загрузка или нет слов, не показываем бейдж
   if (loading || count === 0) {
     return null;
   }

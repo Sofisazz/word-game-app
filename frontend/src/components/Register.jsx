@@ -1,4 +1,3 @@
-// components/Register.js
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
@@ -22,15 +21,12 @@ const Register = ({ onRegister }) => {
   const [shakingFields, setShakingFields] = useState({});
   const navigate = useNavigate();
 
-  // Функция для запуска анимации дрожания
   const triggerShake = (fieldName) => {
-    // Устанавливаем флаг дрожания
-    setShakingFields(prev => ({
+       setShakingFields(prev => ({
       ...prev,
       [fieldName]: true
     }));
     
-    // Через 500ms убираем флаг дрожания (длина анимации)
     setTimeout(() => {
       setShakingFields(prev => ({
         ...prev,
@@ -39,7 +35,6 @@ const Register = ({ onRegister }) => {
     }, 500);
   };
 
-  // Функции валидации
   const validateUsername = (username, forceValidation = false) => {
     if (!forceValidation && !touched.username && !submitted) return '';
     if (!username.trim()) return 'Имя пользователя обязательно';
@@ -107,7 +102,6 @@ const Register = ({ onRegister }) => {
     return '';
   };
 
-  // Валидация всех полей (только при отправке)
   const validateForm = () => {
     const newErrors = {};
     
@@ -118,7 +112,6 @@ const Register = ({ onRegister }) => {
     
     setErrors(newErrors);
     
-    // Запускаем анимацию дрожания для полей с ошибками
     Object.keys(newErrors).forEach(fieldName => {
       if (newErrors[fieldName]) {
         triggerShake(fieldName);
@@ -144,7 +137,6 @@ const Register = ({ onRegister }) => {
       });
     }
     
-    // Если поле было затронуто и у него есть ошибка - очищаем ошибку при вводе
     if (touched[name] && errors[name]) {
       setErrors({
         ...errors,
@@ -156,7 +148,6 @@ const Register = ({ onRegister }) => {
   const handleBlur = (e) => {
     const { name, value } = e.target;
     
-    // Помечаем поле как "затронутое"
     if (!touched[name]) {
       setTouched({
         ...touched,
@@ -164,7 +155,6 @@ const Register = ({ onRegister }) => {
       });
     }
     
-    // Валидируем только если поле затронуто или форма была отправлена
     let error = '';
     switch (name) {
       case 'username':
@@ -195,7 +185,6 @@ const Register = ({ onRegister }) => {
     e.preventDefault();
     setSubmitted(true);
     
-    // Проверяем все поля перед отправкой
     if (!validateForm()) {
       setErrors(prev => ({
         ...prev,
@@ -219,25 +208,18 @@ const Register = ({ onRegister }) => {
         password: formData.password
       });
       
-      console.log('📨 Данные от регистрации:', registerData);
       
       if (registerData && registerData.success) {
-        console.log('✅ Регистрация успешна! ID пользователя:', registerData.user?.id);
-        
-        console.log('🔐 Пытаемся войти...');
         const loginData = await authAPI.login({
           username: formData.email,
           password: formData.password
         });
         
-        console.log('🔑 Данные от входа:', loginData);
         
         if (loginData && loginData.success) {
-          console.log('🎉 Вход успешен!');
           onRegister(loginData.user);
           navigate('/');
         } else {
-          console.warn('⚠️ Регистрация успешна, но вход не удался');
           setErrors({
             form: 'Регистрация успешна! Пожалуйста, войдите вручную.'
           });
@@ -246,9 +228,6 @@ const Register = ({ onRegister }) => {
           }, 2000);
         }
       } else {
-        console.warn('❌ Сервер не подтвердил успешность регистрации');
-        
-        // Определяем, какое поле вызвало ошибку
         let fieldToShake = null;
         let errorMessage = registerData?.error || registerData?.message || 'Ошибка при регистрации';
         
@@ -274,13 +253,11 @@ const Register = ({ onRegister }) => {
       }
       
     } catch (error) {
-      console.error('💥 Ошибка в процессе регистрации:', error);
       
       if (error.response) {
         if (error.response.status === 409) {
           const errorMessage = 'Пользователь с таким именем или email уже существует';
           
-          // Пытаемся определить, что именно занято
           if (error.response.data?.error?.includes('email')) {
             triggerShake('email');
             setTouched(prev => ({ ...prev, email: true }));
@@ -296,7 +273,6 @@ const Register = ({ onRegister }) => {
               form: errorMessage 
             });
           } else {
-            // Если непонятно что именно - дрожим оба поля
             triggerShake('username');
             triggerShake('email');
             setTouched(prev => ({ 
@@ -329,7 +305,6 @@ const Register = ({ onRegister }) => {
     }
   };
 
-  // Получаем класс для поля ввода
   const getInputClassName = (fieldName) => {
     const hasError = errors[fieldName] && (touched[fieldName] || submitted);
     const isShaking = shakingFields[fieldName];
@@ -414,7 +389,6 @@ const Register = ({ onRegister }) => {
           )}
         </div>
         
-        {/* Требования к паролю (подсказка) */}
         <div className="password-requirements">
           <p><strong>Пароль должен содержать:</strong></p>
           <ul>

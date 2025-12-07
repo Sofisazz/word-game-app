@@ -1,4 +1,3 @@
-// components/PrivacyPage.js
 import React from 'react';
 import './PrivacyPage.css';
 

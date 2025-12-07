@@ -34,19 +34,46 @@ $database = new Database();
 $db = $database->getConnection();
 
 $method = $_SERVER['REQUEST_METHOD'];
-$uri = $_SERVER['REQUEST_URI'];
-$uri_parts = explode('/', trim($uri, '/'));
-$endpoint = end($uri_parts);
 
-// Убираем параметры из endpoint
-$endpoint = strtok($endpoint, '?');
+// ПРОСТОЙ СПОСОБ: Получаем путь из REQUEST_URI
+$request_uri = $_SERVER['REQUEST_URI'];
+error_log("Full request URI: " . $request_uri);
+
+// Убираем query string если есть
+$request_uri = strtok($request_uri, '?');
+
+// Разбиваем путь на части
+$path_parts = explode('/', trim($request_uri, '/'));
+
+// Находим позицию wrong_words.php в массиве
+$script_index = array_search('wrong_words.php', $path_parts);
+
+// Получаем параметры после wrong_words.php
+if ($script_index !== false && isset($path_parts[$script_index + 1])) {
+    $endpoint_param = $path_parts[$script_index + 1];
+    
+    // Если есть еще параметры (для check/word_id)
+    if (isset($path_parts[$script_index + 2])) {
+        $second_param = $path_parts[$script_index + 2];
+    } else {
+        $second_param = null;
+    }
+} else {
+    $endpoint_param = null;
+    $second_param = null;
+}
+
+error_log("Endpoint param: " . ($endpoint_param ?: 'null'));
+error_log("Second param: " . ($second_param ?: 'null'));
 
 switch ($method) {
     case 'GET':
-        if (strpos($uri, 'check/') !== false) {
-            $parts = explode('check/', $uri);
-            $word_id = end($parts);
-            checkWord($db, $user_id, $word_id);
+        if ($endpoint_param === 'check' && is_numeric($second_param)) {
+            // Для /wrong_words.php/check/76
+            checkWord($db, $user_id, $second_param);
+        } else if (is_numeric($endpoint_param)) {
+            // Для /wrong_words.php/76 (GET - получить конкретное слово)
+            getWrongWord($db, $user_id, $endpoint_param);
         } else {
             getUserWrongWords($db, $user_id);
         }
@@ -57,8 +84,8 @@ switch ($method) {
         break;
         
     case 'PUT':
-        if (is_numeric($endpoint)) {
-            updateWrongWord($db, $user_id, $endpoint);
+        if (is_numeric($endpoint_param)) {
+            updateWrongWord($db, $user_id, $endpoint_param);
         } else {
             http_response_code(400);
             echo json_encode(["message" => "Неверный ID"]);
@@ -66,10 +93,10 @@ switch ($method) {
         break;
         
     case 'DELETE':
-        if ($endpoint === 'clear_all') {
+        if ($endpoint_param === 'clear_all') {
             clearAllWrongWords($db, $user_id);
-        } else if (is_numeric($endpoint)) {
-            deleteWrongWord($db, $user_id, $endpoint);
+        } else if (is_numeric($endpoint_param)) {
+            deleteWrongWord($db, $user_id, $endpoint_param);
         } else {
             http_response_code(400);
             echo json_encode(["message" => "Неверный запрос"]);
@@ -79,6 +106,40 @@ switch ($method) {
     default:
         http_response_code(405);
         echo json_encode(["message" => "Метод не поддерживается"]);
+}
+
+// Функции остаются без изменений
+function getWrongWord($db, $user_id, $id) {
+    try {
+        $query = "
+            SELECT wa.id, wa.word_id, wa.mistakes, wa.last_practice, wa.created_at,
+                   w.original_word, w.translation, w.example_sentence
+            FROM wrong_answers wa
+            LEFT JOIN words w ON wa.word_id = w.id
+            WHERE wa.id = :id AND wa.user_id = :user_id
+        ";
+        
+        $stmt = $db->prepare($query);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+        $stmt->execute();
+        
+        $wrong_word = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($wrong_word) {
+            echo json_encode($wrong_word);
+        } else {
+            http_response_code(404);
+            echo json_encode(["message" => "Запись не найдена"]);
+        }
+        
+    } catch (PDOException $e) {
+        error_log("Database error in getWrongWord: " . $e->getMessage());
+        http_response_code(500);
+        echo json_encode([
+            "message" => "Ошибка базы данных: " . $e->getMessage()
+        ]);
+    }
 }
 
 function getUserWrongWords($db, $user_id) {

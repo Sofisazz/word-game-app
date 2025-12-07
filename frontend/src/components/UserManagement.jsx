@@ -1,4 +1,3 @@
-// components/admin/UserManagement.js
 import React, { useState, useEffect } from 'react';
 import { adminAPI } from '../services/api';
 import './UserManagement.css';
@@ -18,56 +17,41 @@ const UserManagement = () => {
       setLoading(true);
       setError('');
       
-      console.log('🔄 Загрузка пользователей...');
       
       let response;
       try {
         response = await adminAPI.getAllUsersWithStats();
-        console.log('✅ Получены пользователи со статистикой:');
         
         // Отладка первого пользователя
         if (response.data.users && response.data.users.length > 0) {
           const firstUser = response.data.users[0];
-          console.log('👤 Первый пользователь:', firstUser.username);
-          console.log('📅 created_at:', firstUser.created_at);
-          console.log('📅 last_activity (raw):', firstUser.last_activity);
-          console.log('📅 last_activity_text (с сервера):', firstUser.last_activity_text);
+          console.log('Первый пользователь:', firstUser.username);
         }
       } catch (statsError) {
-        console.warn('⚠️ Не удалось получить пользователей со статистикой:', statsError.message);
+        console.warn('Не удалось получить пользователей со статистикой:', statsError.message);
         response = await adminAPI.getAllUsers();
-        console.log('✅ Получены пользователи без статистики:');
       }
       
       if (response.data && response.data.success) {
         const usersFromServer = response.data.users || [];
         
-        // ФИЛЬТРАЦИЯ АДМИНОВ
         const filteredUsers = usersFromServer.filter(user => user.role !== 'admin');
         
-        console.log('👥 Отфильтрованные пользователи:', filteredUsers.length);
-        
-        // Обрабатываем данные для правильного отображения
         const processedUsers = filteredUsers.map(user => {
-          // Определяем последнюю активность
           const lastActivity = user.last_activity || user.created_at;
           
-          // Создаем форматированное время
           let displayText;
           if (!lastActivity || lastActivity === 'null' || lastActivity === '0000-00-00 00:00:00') {
             displayText = 'Никогда';
           } else {
-            // Проверяем, есть ли уже форматированный текст с сервера
             if (user.last_activity_text && user.last_activity_text !== 'null') {
               displayText = user.last_activity_text;
             } else {
-              // Форматируем на клиенте
               displayText = formatDateTime(lastActivity);
             }
           }
           
-          // Для отладки
-          if (filteredUsers.length <= 5) { // Логируем только первых 5 пользователей для удобства
+          if (filteredUsers.length <= 5) { 
             console.log(`👤 ${user.username}:`);
             console.log('  - Регистрация:', user.created_at);
             console.log('  - Последняя активность (сырая):', user.last_activity);
@@ -86,33 +70,28 @@ const UserManagement = () => {
         throw new Error(response.data ? response.data.error : 'Не удалось загрузить пользователей');
       }
     } catch (error) {
-      console.error('❌ Ошибка загрузки пользователей:', error);
+      console.error('Ошибка загрузки пользователей:', error);
       setError(error.response ? error.response.data.error : error.message || 'Ошибка при загрузке пользователей');
     } finally {
       setLoading(false);
     }
   };
 
-  // Функция для получения URL аватара
   const getAvatarUrl = (avatarPath) => {
     if (!avatarPath) return null;
     
-    // Если это уже полный URL
     if (avatarPath.startsWith('http://') || avatarPath.startsWith('https://')) {
       return avatarPath;
     }
     
-    // Если путь начинается с /backend
     if (avatarPath.startsWith('/backend/')) {
       return `http://localhost${avatarPath}`;
     }
     
-    // Если путь относительный
     if (avatarPath.startsWith('uploads/') || avatarPath.startsWith('/uploads/')) {
       return `http://localhost/backend/${avatarPath.replace(/^\//, '')}`;
     }
     
-    // Если это просто имя файла
     if (avatarPath.includes('avatar_')) {
       return `http://localhost/backend/uploads/avatars/${avatarPath}`;
     }
@@ -120,7 +99,6 @@ const UserManagement = () => {
     return avatarPath;
   };
 
-  // Функция для экспорта в Excel
   const exportAllUsers = () => {
     try {
       if (users.length === 0) {
@@ -130,7 +108,6 @@ const UserManagement = () => {
       
       const workbook = XLSX.utils.book_new();
       
-      // Основной лист с данными пользователей
       const usersData = users.map(user => ({
         'ID': user.id,
         'Имя пользователя': user.username,
@@ -139,8 +116,6 @@ const UserManagement = () => {
         'Дата регистрации': formatDateTimeForExcel(user.created_at),
         'Последняя активность': formatDateTimeForExcel(user.last_activity),
     
-        
-        // Статистика (если есть)
         'Уровень': user.level || 1,
         'Опыт (XP)': user.total_xp || 0,
         'Всего игр': user.total_games_played || 0,
@@ -156,29 +131,27 @@ const UserManagement = () => {
 
       const worksheet = XLSX.utils.json_to_sheet(usersData);
       
-      // Настройка ширины столбцов
+
       const colWidths = [
-        { wch: 5 },   // ID
-        { wch: 15 },  // Имя пользователя
-        { wch: 25 },  // Email
-        { wch: 25 },  // Отображаемое имя
-        { wch: 20 },  // Дата регистрации
-        { wch: 25 },  // Последняя активность (точное время)
-        { wch: 8 },   // Уровень
-        { wch: 10 },  // Опыт (XP)
-        { wch: 10 },  // Всего игр
-        { wch: 20 },  // Правильных ответов
-        { wch: 20 },  // Процент правильных
-        { wch: 20 },  // Средний XP за игру
-        { wch: 20 },  // Выучено слов
-       
-        { wch: 25 },  // Количество достижений
+        { wch: 5 },  
+        { wch: 15 },  
+        { wch: 25 },  
+        { wch: 25 },  
+        { wch: 20 },  
+        { wch: 25 },  
+        { wch: 8 },  
+        { wch: 10 }, 
+        { wch: 10 }, 
+        { wch: 20 }, 
+        { wch: 20 },  
+        { wch: 20 },  
+        { wch: 20 },  
+        { wch: 25 },  
       ];
       worksheet['!cols'] = colWidths;
 
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Все пользователи');
 
-      // Лист со сводной статистикой (только если есть данные)
       if (users.some(user => user.total_games_played > 0)) {
         const totalUsers = users.length;
         const totalGames = users.reduce((sum, user) => sum + (user.total_games_played || 0), 0);
@@ -216,10 +189,9 @@ const UserManagement = () => {
         
         const summaryWorksheet = XLSX.utils.aoa_to_sheet(summaryData);
   
-  // Настройка ширины столбцов для сводной статистики
   const summaryColWidths = [
-    { wch: 40 }, // Первый столбец - заголовки и названия
-    { wch: 40 }, // Второй столбец - значения
+    { wch: 40 }, 
+    { wch: 40 }, 
   ];
   summaryWorksheet['!cols'] = summaryColWidths;
   
@@ -236,7 +208,6 @@ const UserManagement = () => {
     }
   };
 
-  // Вспомогательные функции
   const getMostActiveUser = (users) => {
     if (users.length === 0) return '-';
     const mostActive = users.reduce((prev, current) => 
@@ -270,9 +241,7 @@ const UserManagement = () => {
       const date = new Date(dateString);
       const now = new Date();
       
-      // Проверяем валидность даты
       if (isNaN(date.getTime())) {
-        console.log('⚠️ Невалидная дата:', dateString);
         return dateString;
       }
       
@@ -282,7 +251,6 @@ const UserManagement = () => {
       const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
       const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
       
-      // Форматируем точное время
       const formattedTime = date.toLocaleString('ru-RU', {
         day: '2-digit',
         month: '2-digit',
@@ -291,7 +259,6 @@ const UserManagement = () => {
         minute: '2-digit'
       });
       
-      // Определяем относительное время
       let relativeText = '';
       
       if (diffSeconds < 60) {
@@ -320,12 +287,11 @@ const UserManagement = () => {
       return formattedTime + relativeText;
       
     } catch (e) {
-      console.log('❌ Ошибка форматирования даты:', e);
+      console.log('Ошибка форматирования даты:', e);
       return dateString;
     }
   };
 
-  // Вспомогательная функция для склонения русских слов
   const getRussianWord = (number, words) => {
     const cases = [2, 0, 1, 1, 1, 2];
     return words[
@@ -334,8 +300,6 @@ const UserManagement = () => {
         : cases[Math.min(number % 10, 5)]
     ];
   };
-
-  // Функция для форматирования даты для Excel (только дата и время)
   const formatDateTimeForExcel = (dateString) => {
     if (!dateString || dateString === 'null' || dateString === '0000-00-00 00:00:00') {
       return '';
@@ -382,7 +346,6 @@ const UserManagement = () => {
     }
   };
 
-  // Добавим также статистику в карточки пользователей
   const renderUserStats = (user) => {
     if (!user.total_games_played && !user.total_xp) return null;
     
@@ -508,7 +471,6 @@ const UserManagement = () => {
                   </div>
                 </div>
                 
-                {/* Добавляем статистику если она есть */}
                 {renderUserStats(user)}
               </div>
 

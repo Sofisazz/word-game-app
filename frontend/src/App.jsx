@@ -1,4 +1,3 @@
-// App.js
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Header from './components/Header';
@@ -30,13 +29,10 @@ function App() {
   useEffect(() => {
     checkSession();
     
-    // Создаем глобальную функцию для обновления пользователя
     window.updateUserProfile = (updatedUser) => {
-      console.log('🌐 Global user update called:', updatedUser);
       setUser(updatedUser);
       sessionStorage.setItem('user', JSON.stringify(updatedUser));
       
-      // ДИСПАТЧИМ СОБЫТИЕ ДЛЯ ОБНОВЛЕНИЯ
       const userUpdatedEvent = new CustomEvent('userUpdated');
       window.dispatchEvent(userUpdatedEvent);
     };
@@ -52,13 +48,11 @@ function App() {
       if (savedUser) {
         const userData = JSON.parse(savedUser);
         setUser(userData);
-        console.log('✅ Пользователь восстановлен из сессии:', userData);
       } else {
-        console.log('ℹ️ Пользователь не найден в сессии');
         setUser(null);
       }
     } catch (error) {
-      console.error('❌ Ошибка при проверке сессии:', error);
+      console.error('Ошибка при проверке сессии:', error);
       setUser(null);
     } finally {
       setLoading(false);
@@ -67,10 +61,9 @@ function App() {
 
   const handleLogin = async (userData) => {
     try {
-      console.log('🔄 Processing login for:', userData);
+      console.log('Processing login for:', userData);
       
       if (userData.username === 'admin' && userData.role === 'admin') {
-        console.log('🔑 Admin login detected');
         const adminUser = {
           id: 1,
           username: 'admin',
@@ -86,7 +79,7 @@ function App() {
       const response = await userAPI.getUser(userData.id);
       if (response.data.success) {
         const fullUserData = response.data.user;
-        console.log('✅ User login successful:', fullUserData);
+        console.log('User login successful:', fullUserData);
         setUser(fullUserData);
         sessionStorage.setItem('user', JSON.stringify(fullUserData));
         return fullUserData;
