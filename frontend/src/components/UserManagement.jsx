@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { adminAPI } from '../services/api';
 import './UserManagement.css';
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx'; 
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -215,13 +215,21 @@ const UserManagement = () => {
         }
         
         const summaryWorksheet = XLSX.utils.aoa_to_sheet(summaryData);
-        XLSX.utils.book_append_sheet(workbook, summaryWorksheet, 'Сводка');
-      }
+  
+  // Настройка ширины столбцов для сводной статистики
+  const summaryColWidths = [
+    { wch: 40 }, // Первый столбец - заголовки и названия
+    { wch: 40 }, // Второй столбец - значения
+  ];
+  summaryWorksheet['!cols'] = summaryColWidths;
+  
+  XLSX.utils.book_append_sheet(workbook, summaryWorksheet, 'Сводка');
+}
 
       const fileName = `users_statistics_${new Date().toISOString().split('T')[0]}.xlsx`;
       XLSX.writeFile(workbook, fileName);
       
-      alert(`Экспорт завершен! Файл "${fileName}" скачан.`);
+      
     } catch (error) {
       console.error('Ошибка экспорта:', error);
       alert('Ошибка при экспорте: ' + error.message);

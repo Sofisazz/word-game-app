@@ -23,6 +23,18 @@ $pdo = $database->getConnection();
 
 $method = $_SERVER['REQUEST_METHOD'];
 
+// Функция для проверки существования таблицы
+function tableExists($pdo, $tableName) {
+    try {
+        $result = $pdo->query("SELECT 1 FROM information_schema.tables 
+                              WHERE table_schema = DATABASE() 
+                              AND table_name = '$tableName'");
+        return $result->fetch() !== false;
+    } catch (PDOException $e) {
+        return false;
+    }
+}
+
 try {
     switch ($method) {
         case 'GET':
@@ -54,13 +66,6 @@ try {
                 exit;
             }
             
-            // ВРЕМЕННО: пропускаем проверку сессии
-            // if (!isset($_SESSION['user_id']) || $_SESSION['user_id'] <= 0) {
-            //     http_response_code(401);
-            //     echo json_encode(['error' => 'Пользователь не авторизован']);
-            //     exit;
-            // }
-            
             // Проверяем, не существует ли уже набор с таким названием
             $stmt = $pdo->prepare("SELECT id FROM word_sets WHERE name = ?");
             $stmt->execute([$input['name']]);
@@ -70,29 +75,17 @@ try {
                 exit;
             }
             
-            // ВРЕМЕННО: используем фиксированный user_id
-            $user_id = 1; // Используйте ID существующего пользователя в вашей базе
-            
-            // Проверяем, существует ли пользователь с таким ID
-            $stmt = $pdo->prepare("SELECT id FROM users WHERE id = ?");
-            $stmt->execute([$user_id]);
-            if (!$stmt->fetch()) {
-                // Если пользователь не существует, делаем created_by NULL
-                $user_id = null;
-            }
-            
             // Вставляем новый набор
             $stmt = $pdo->prepare("
-                INSERT INTO word_sets (name, description, created_by) 
-                VALUES (?, ?, ?)
+                INSERT INTO word_sets (name, description) 
+                VALUES (?, ?)
             ");
             
             $description = $input['description'] ?? null;
             
             $stmt->execute([
                 trim($input['name']),
-                $description,
-                $user_id
+                $description
             ]);
             
             $set_id = $pdo->lastInsertId();
@@ -124,27 +117,102 @@ try {
                 exit;
             }
             
-            // ВРЕМЕННО: пропускаем проверку администратора
+            // Проверяем, существует ли набор
+            $stmt = $pdo->prepare("SELECT id FROM word_sets WHERE id = ?");
+            $stmt->execute([$setId]);
+            if (!$stmt->fetch()) {
+                http_response_code(404);
+                echo json_encode(['error' => 'Набор не найден']);
+                exit;
+            }
             
             // Начинаем транзакцию
             $pdo->beginTransaction();
             
             try {
-                // Удаляем слова из набора
+                // 1. Получаем ID всех слов из этого набора
+                $stmt = $pdo->prepare("SELECT id FROM words WHERE word_set_id = ?");
+                $stmt->execute([$setId]);
+                $wordIds = $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
+                
+                // 2. Если есть прогресс по этим словам, удаляем его
+                if (!empty($wordIds) && tableExists($pdo, 'word_progress')) {
+                    // Создаем строку с ID слов для IN запроса
+                    $placeholders = implode(',', array_fill(0, count($wordIds), '?'));
+                    
+                    $stmt = $pdo->prepare("
+                        DELETE FROM word_progress 
+                        WHERE word_id IN ($placeholders)
+                    ");
+                    $stmt->execute($wordIds);
+                }
+                
+                // 3. Удаляем слова из набора
                 $stmt = $pdo->prepare("DELETE FROM words WHERE word_set_id = ?");
                 $stmt->execute([$setId]);
                 
-                // Удаляем сам набор
+                // 4. Удаляем сам набор
                 $stmt = $pdo->prepare("DELETE FROM word_sets WHERE id = ?");
                 $stmt->execute([$setId]);
                 
                 $pdo->commit();
-                echo json_encode(['success' => true, 'message' => 'Набор удален']);
+                echo json_encode([
+                    'success' => true, 
+                    'message' => 'Набор успешно удален',
+                    'deleted_words' => count($wordIds)
+                ]);
                 
             } catch (Exception $e) {
                 $pdo->rollBack();
                 throw $e;
             }
+            break;
+            
+        case 'PUT':
+            // Обновление набора слов
+            $setId = $_GET['set_id'] ?? null;
+            $input = json_decode(file_get_contents('php://input'), true);
+            
+            if (!$setId) {
+                http_response_code(400);
+                echo json_encode(['error' => 'ID набора не указан']);
+                exit;
+            }
+            
+            if (empty($input['name'])) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Название набора обязательно']);
+                exit;
+            }
+            
+            // Проверяем, не существует ли другой набор с таким названием
+            $stmt = $pdo->prepare("SELECT id FROM word_sets WHERE name = ? AND id != ?");
+            $stmt->execute([$input['name'], $setId]);
+            if ($stmt->fetch()) {
+                http_response_code(409);
+                echo json_encode(['error' => 'Набор с таким названием уже существует']);
+                exit;
+            }
+            
+            // Обновляем набор
+            $stmt = $pdo->prepare("
+                UPDATE word_sets 
+                SET name = ?, description = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            ");
+            
+            $description = $input['description'] ?? null;
+            
+            $stmt->execute([
+                trim($input['name']),
+                $description,
+                $setId
+            ]);
+            
+            echo json_encode([
+                'success' => true,
+                'message' => 'Набор успешно обновлен'
+            ]);
             break;
             
         default:

@@ -1,4 +1,3 @@
-// components/AchievementsPage.jsx
 import React, { useState, useEffect } from 'react';
 import { userAPI } from '../services/api';
 import './AchievementsPage.css';
@@ -16,68 +15,121 @@ const AchievementsPage = () => {
 
   const fetchAchievementsData = async () => {
     try {
-      const user = JSON.parse(localStorage.getItem('user'));
+      setLoading(true);
+      setError('');
       
+      // Получаем пользователя из sessionStorage вместо localStorage
+      const userData = sessionStorage.getItem('user');
+      let user = null;
+      
+      if (userData) {
+        try {
+          user = JSON.parse(userData);
+          console.log('👤 User from sessionStorage:', user);
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+      
+      // Если не нашли в sessionStorage, пробуем localStorage
       if (!user) {
+        const localStorageUser = localStorage.getItem('user');
+        if (localStorageUser) {
+          try {
+            user = JSON.parse(localStorageUser);
+            console.log('👤 User from localStorage:', user);
+          } catch (e) {
+            console.error('Error parsing user data:', e);
+          }
+        }
+      }
+
+      if (!user || !user.id) {
         setError('Пользователь не авторизован');
         setLoading(false);
         return;
       }
 
-      // Получаем достижения и статистику
-      const [achievementsResponse, statsResponse] = await Promise.all([
-        userAPI.getAllAchievements(user.id),
-        userAPI.getStats(user.id)
-      ]);
+      console.log('🔄 Fetching achievements for user ID:', user.id);
 
-      console.log('Achievements API response:', achievementsResponse.data);
-      console.log('Stats API response:', statsResponse.data);
+      try {
+        // Получаем достижения и статистику
+        const [achievementsResponse, statsResponse] = await Promise.all([
+          userAPI.getAllAchievements(user.id),
+          userAPI.getStats(user.id)
+        ]);
 
-      if (achievementsResponse.data.success) {
-        // Проверяем структуру ответа
-        const achievementsData = achievementsResponse.data.data || achievementsResponse.data.achievements || [];
-        const userAchievementsData = achievementsResponse.data.user_achievements || 
-                                   achievementsResponse.data.userAchievements || 
-                                   [];
-        
-        console.log('Achievements data:', achievementsData);
-        console.log('User achievements IDs:', userAchievementsData);
-        console.log('User achievements type:', typeof userAchievementsData);
-        
-        setAchievements(achievementsData);
-        setUserAchievements(userAchievementsData);
-        
-        // Проверяем несколько достижений
-        if (achievementsData.length > 0) {
-          console.log('First achievement:', achievementsData[0]);
-          console.log('Does user have first achievement?', userAchievementsData.includes(achievementsData[0].id));
+        console.log('✅ Achievements API response:', achievementsResponse.data);
+        console.log('✅ Stats API response:', statsResponse.data);
+
+        if (achievementsResponse.data.success) {
+          // Проверяем структуру ответа
+          const achievementsData = achievementsResponse.data.data || 
+                                 achievementsResponse.data.achievements || 
+                                 [];
+          const userAchievementsData = achievementsResponse.data.user_achievements || 
+                                     achievementsResponse.data.userAchievements || 
+                                     [];
+          
+          console.log('🎯 Achievements data:', achievementsData.length, 'items');
+          console.log('🎯 User achievements:', userAchievementsData);
+          
+          setAchievements(achievementsData);
+          setUserAchievements(userAchievementsData);
+          
+          if (achievementsData.length > 0) {
+            console.log('🎯 First achievement:', achievementsData[0]);
+            console.log('🔍 Does user have first achievement?', 
+              userAchievementsData.includes(achievementsData[0].id) || 
+              userAchievementsData.some(ua => ua.achievement_id === achievementsData[0].id)
+            );
+          }
+        } else {
+          setError('Ошибка загрузки достижений: ' + (achievementsResponse.data.message || achievementsResponse.data.error || ''));
         }
-      } else {
-        setError('Ошибка загрузки достижений: ' + (achievementsResponse.data.message || ''));
-      }
 
-      if (statsResponse.data.success) {
-        setUserStats(statsResponse.data.data);
-      } else {
-        console.error('Stats error:', statsResponse.data.error);
+        if (statsResponse.data.success) {
+          setUserStats(statsResponse.data.data);
+        } else {
+          console.error('Stats error:', statsResponse.data.message || statsResponse.data.error);
+        }
+
+      } catch (apiError) {
+        console.error('API Error:', apiError);
+        setError('Ошибка загрузки данных: ' + (apiError.message || 'Неизвестная ошибка'));
       }
 
     } catch (err) {
-      console.error('Error fetching achievements:', err);
-      setError('Ошибка загрузки данных: ' + err.message);
+      console.error('❌ General error fetching achievements:', err);
+      setError('Ошибка загрузки данных: ' + (err.message || 'Неизвестная ошибка'));
     } finally {
       setLoading(false);
     }
   };
 
+  // Остальной код компонента остается без изменений...
   const hasAchievement = (achievementId) => {
-    // Преобразуем ID к строке для сравнения, т.к. из API могут приходить строки
     const achievementIdStr = String(achievementId);
     
-    // Проверяем, есть ли ID в массиве userAchievements
-    const hasAchievement = userAchievements.some(id => String(id) === achievementIdStr);
+    // Проверяем разные форматы данных
+    let hasAchievement = false;
     
-    console.log(`Checking achievement ${achievementId}:`, {
+    if (Array.isArray(userAchievements)) {
+      // Если это массив ID
+      hasAchievement = userAchievements.some(id => String(id) === achievementIdStr);
+      
+      // Если это массив объектов с achievement_id
+      if (!hasAchievement) {
+        hasAchievement = userAchievements.some(ua => {
+          if (ua && typeof ua === 'object') {
+            return String(ua.achievement_id) === achievementIdStr;
+          }
+          return false;
+        });
+      }
+    }
+    
+    console.log(`🔍 Checking achievement ${achievementId}:`, {
       userAchievements,
       achievementIdStr,
       hasAchievement
