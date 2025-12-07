@@ -4,6 +4,7 @@
   --primary-light: #60a5fa;
   --primary-dark: #2563eb;
   --secondary: #8b5cf6;
+  --middle:#636ff6;
   --surface: #ffffff;
   --background: #f8fafc;
   --text-primary: #1f2937;
@@ -300,7 +301,7 @@
 .btn-add-word,
 .btn-delete-set,
 .btn-expand {
-  background: var(--primary);
+  background: var(--middle);
   color: white;
   border: none;
   padding: 0.6rem 1rem;
@@ -335,7 +336,7 @@
 }
 
 .btn-expand.expanded {
-  background: var(--primary-dark);
+  background: var(--middle);
 }
 
 
@@ -405,7 +406,7 @@
 .btn-delete,
 .btn-save,
 .btn-cancel {
-  background: var(--primary);
+  background: var(--middle);
   color: white;
   border: none;
   cursor: pointer;
@@ -458,12 +459,12 @@
   padding: 0.75rem;
   background: rgba(59, 130, 246, 0.05);
   border-radius: 6px;
-  border-left: 3px solid var(--primary);
+  border-left: 3px solid var(--middle);
 }
 
 .example-label {
   font-weight: 600;
-  color: var(--primary);
+  color: var(--middle);
   font-size: 0.8rem;
   margin-right: 0.5rem;
 }
