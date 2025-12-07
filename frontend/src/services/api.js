@@ -2,15 +2,26 @@ import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost/backend/api';
 
+// Функция для получения токена
+const getToken = () => {
+  return localStorage.getItem('token') || sessionStorage.getItem('token');
+};
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, 
+  withCredentials: true,
 });
+
+// Interceptor для добавления токена к запросам
 api.interceptors.request.use(
   (config) => {
+    const token = getToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     console.log('🚀 Making request to:', config.url);
     return config;
   },
@@ -26,16 +37,23 @@ api.interceptors.response.use(
   },
   (error) => {
     console.error('❌ API Error:', error);
-    if (error.response) {
-      console.error('Response data:', error.response.data);
-      console.error('Response status:', error.response.status);
+    if (error.response && error.response.status === 401) {
+      // Если 401 - перенаправляем на страницу входа
+      localStorage.removeItem('token');
+      sessionStorage.removeItem('token');
+      window.location.href = '/login';
     }
     return Promise.reject(error);
   }
 );
+
 export const authAPI = {
   login: async (credentials) => {
     const response = await api.post('/login.php', credentials);
+    // Сохраняем токен если он есть в ответе
+    if (response.data.token) {
+      localStorage.setItem('token', response.data.token);
+    }
     return response.data;
   },
   
@@ -45,6 +63,8 @@ export const authAPI = {
   },
   
   logout: async () => {
+    localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
     const response = await api.post('/logout.php');
     return response.data;
   },
@@ -78,13 +98,16 @@ export const userAPI = {
 };
 
 export const adminAPI = {
-  getStatistics: () => api.get('/admin/statistics.php'),
+  getAllUsersWithStats: () => api.get('/admin/users_with_stats.php'),
   getAllUsers: () => api.get('/admin/users.php'),
-deleteUser: (userId) => {
-  return api.delete(`/admin/delete_user.php?user_id=${userId}`);
-},
+  
+  getStatistics: () => api.get('/admin/statistics.php'),
+  
+  deleteUser: (userId) => {
+    return api.delete(`/admin/delete_user.php?user_id=${userId}`);
+  },
+  
   exportUserReport: (userId) => api.get(`/admin/export-report.php?user_id=${userId}`),
-
   getAllWordSets: () => api.get('/admin/word_sets.php'),
   createWordSet: (setData) => api.post('/admin/word_sets.php', setData),
   updateWordSet: (setId, setData) => api.put(`/admin/word_sets.php?set_id=${setId}`, setData),
@@ -105,7 +128,7 @@ export const wrongWordsAPI = {
   updateWrongWord: (wrongWordId, data) => api.put(`/wrong_words.php/${wrongWordId}`, data),
   clearAllWrongWords: () => api.delete('/wrong_words.php/clear_all'),
   checkWord: (wordId) => api.get(`/wrong_words.php/check/${wordId}`),
- getWrongWordsCount: () => api.get('/wrong_words_count.php')
+  getWrongWordsCount: () => api.get('/wrong_words_count.php')
 };
 
 export default api;
