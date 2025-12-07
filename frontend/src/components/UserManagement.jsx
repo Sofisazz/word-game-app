@@ -148,9 +148,8 @@ const UserManagement = () => {
         'Процент правильных': user.accuracy_percent ? `${user.accuracy_percent}%` : '0%',
         'Средний XP за игру': user.average_xp_per_game || 0,
         
-        // Слова (если есть)
-        'Выучено слов (статистика)': user.total_words_learned || 0,
-        'Выучено слов (прогресс)': user.learned_words_count || 0,
+       
+        'Выучено слов ': user.total_words_learned || 0,
         
         'Количество достижений': user.achievements_count || 0,
  }));
@@ -171,8 +170,8 @@ const UserManagement = () => {
         { wch: 20 },  // Правильных ответов
         { wch: 20 },  // Процент правильных
         { wch: 20 },  // Средний XP за игру
-        { wch: 20 },  // Выучено слов (статистика)
-        { wch: 20 },  // Выучено слов (прогресс)
+        { wch: 20 },  // Выучено слов
+       
         { wch: 25 },  // Количество достижений
       ];
       worksheet['!cols'] = colWidths;
