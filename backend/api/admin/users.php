@@ -1,35 +1,20 @@
 <?php
+// backend/api/admin/users.php
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../../config/cors.php';
 require_once __DIR__ . '/../auth.php';
 
-// ДОБАВЬТЕ В НАЧАЛЕ ОТЛАДКУ (исправленная версия)
-error_log("=== ADMIN/USERS.PHP ACCESS ATTEMPT ===");
-error_log("Session ID: " . session_id());
-error_log("Session data: " . print_r($_SESSION, true)); // Отладочная информация
-error_log("isAdmin() returns: " . (isAdmin() ? 'true' : 'false'));
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
+}
 
-// ВРЕМЕННО: ОТКЛЮЧИТЕ ПРОВЕРКУ АВТОРИЗАЦИИ ДЛЯ ТЕСТИРОВАНИЯ
-// if (!isLoggedIn()) {
-//     error_log("User is not logged in");
-//     http_response_code(401);
-//     echo json_encode(['error' => 'Требуется авторизация']);
-//     exit;
-// }
+if (!isAdmin()) {
+    http_response_code(403);
+    echo json_encode(['error' => 'Доступ запрещен']);
+    exit;
+}
 
-// ВРЕМЕННО: ПРОПУСТИТЕ ПРОВЕРКУ isAdmin() 
-// if (!isAdmin()) {
-//     $user = getUserSession();
-//     error_log("User role is: " . ($user['role'] ?? 'undefined'));
-//     error_log("User attempted admin access but is not admin");
-//     http_response_code(403);
-//     echo json_encode(['error' => 'Доступ запрещен. Требуются права администратора.']);
-//     exit;
-// }
-
-error_log("User has admin access, proceeding...");
-
-// Создаем соединение с базой данных
 $database = new Database();
 $pdo = $database->getConnection();
 
@@ -40,7 +25,7 @@ try {
         case 'GET':
             // Получение списка пользователей
             $stmt = $pdo->query("
-                SELECT id, username, email, display_name, created_at, last_activity, role
+                SELECT id, username, email, display_name, created_at, last_activity,avatar, role
                 FROM users 
                 ORDER BY created_at DESC
             ");
