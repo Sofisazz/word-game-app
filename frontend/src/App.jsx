@@ -1,3 +1,4 @@
+// App.js
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Header from './components/Header';
@@ -28,7 +29,22 @@ function App() {
 
   useEffect(() => {
     checkSession();
-  }, []);
+    
+    // Создаем глобальную функцию для обновления пользователя
+    window.updateUserProfile = (updatedUser) => {
+      console.log('🌐 Global user update called:', updatedUser);
+      setUser(updatedUser);
+      sessionStorage.setItem('user', JSON.stringify(updatedUser));
+      
+      // ДИСПАТЧИМ СОБЫТИЕ ДЛЯ ОБНОВЛЕНИЯ
+      const userUpdatedEvent = new CustomEvent('userUpdated');
+      window.dispatchEvent(userUpdatedEvent);
+    };
+
+    return () => {
+      window.updateUserProfile = null;
+    };
+  }, [setUser]);
 
   const checkSession = async () => {
     try {

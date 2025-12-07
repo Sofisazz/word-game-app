@@ -196,7 +196,9 @@
   height: 100%;
   object-fit: cover;
 }
-
+.small{
+  color: white;
+}
 .achievement-fallback-icon-small {
   font-size: 1.2rem;
 }
@@ -290,4 +292,63 @@
     justify-content: center;
     flex-wrap: wrap;
   }
+}
+/* UserProfile.css */
+.xp-progress {
+  margin-top: 15px;
+}
+
+.xp-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: #000000;
+  margin-bottom: 5px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 12px;
+  background-color: #e0e0e0;
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4CAF50, #8BC34A);
+  border-radius: 6px;
+  transition: width 0.5s ease;
+  min-width: 3px; /* Всегда показывать хоть немного */
+}
+
+/* Если прогресс 0, показывать тонкую линию */
+.progress-fill[style*="width: 0%"],
+.progress-fill[style*="width: 0.0%"] {
+  min-width: 3px;
+  background: #8BC34A;
+}
+
+.xp-remaining {
+  font-size: 0.85rem;
+  color: #000000;
+  margin-top: 5px;
+  text-align: center;
+}
+
+.level-progress-info {
+  font-size: 0.8rem;
+  color: #ffffff;
+  margin-top: 3px;
+  text-align: center;
+}
+
+.level-up-badge {
+  background-color: #ff9800;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  margin-left: 8px;
 }

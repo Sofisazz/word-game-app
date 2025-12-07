@@ -1,40 +1,65 @@
 <?php
-// backend/api/stats.php
+// backend/api/user_stats.php
 require_once '../config/cors.php';
 require_once '../config/database.php';
 
 header('Content-Type: application/json');
 
-// Функция для расчета уровня на основе общего XP (ваша новая система)
-function calculateLevel($total_xp) {
-    $base_xp = 250; // XP для 2 уровня
+// ДОБАВЬ ЭТУ ФУНКЦИЮ в user_stats.php
+function calculateNewLevel($total_xp) {
+    $base_xp = 250;
     $level = 1;
-    $current_level_xp = 0;
-    $next_level_xp = $base_xp;
+    $xp_accumulated = 0;
     
-    // Рассчитываем уровень на основе общего XP
-    while ($total_xp >= $next_level_xp) {
+    while (true) {
+        $xp_for_next_level = $base_xp + ($level - 1) * 100;
+        
+        if ($total_xp < ($xp_accumulated + $xp_for_next_level)) {
+            return $level;
+        }
+        
+        $xp_accumulated += $xp_for_next_level;
         $level++;
-        $current_level_xp = $next_level_xp;
-        $next_level_xp = $current_level_xp + ($base_xp + ($level - 2) * 100); // Увеличиваем на 100 XP за каждый уровень
+    }
+}
+function getLevelProgress($total_xp) {
+    $base_xp = 250;
+    $level = 1;
+    $xp_accumulated = 0;
+    
+    // Сначала находим уровень
+    while (true) {
+        $xp_for_next_level = $base_xp + ($level - 1) * 100;
+        
+        if ($total_xp < ($xp_accumulated + $xp_for_next_level)) {
+            break;
+        }
+        
+        $xp_accumulated += $xp_for_next_level;
+        $level++;
     }
     
-    // Для 1 уровня
-    if ($level == 1) {
-        $current_level_xp = 0;
-        $next_level_xp = $base_xp;
-    }
+    // XP в текущем уровне
+    $current_xp_in_level = $total_xp - $xp_accumulated;
     
-    $current_xp_in_level = $total_xp - $current_level_xp;
-    $xp_needed = $next_level_xp - $current_level_xp;
+    // XP для следующего уровня
+    $next_level_xp_required = $base_xp + ($level - 1) * 100;
+    
+    // XP до следующего уровня
+    $xp_needed_for_next_level = max(0, $next_level_xp_required - $current_xp_in_level);
+    
+    // Процент прогресса
+    $progress_percentage = $next_level_xp_required > 0 ? 
+        round(max(0, min(100, $current_xp_in_level / $next_level_xp_required * 100)), 1) : 0;
     
     return [
         'level' => $level,
         'total_xp' => $total_xp,
-        'current_xp' => $current_xp_in_level,
-        'next_level_xp' => $xp_needed,
-        'current_level_max_xp' => $current_level_xp,
-        'next_level_total_xp' => $next_level_xp
+        'current_xp' => max(0, $current_xp_in_level),
+        'next_level_xp' => $next_level_xp_required,
+        'current_level_xp_accumulated' => $xp_accumulated,
+        'xp_needed' => $xp_needed_for_next_level,
+        'progress_percentage' => $progress_percentage
     ];
 }
 
@@ -91,10 +116,9 @@ try {
         $achievements_stmt->execute([$user_id]);
         $achievements = $achievements_stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        // Рассчитываем уровень по новой системе
         $total_xp = $stats['total_xp'] ?? 0;
-        $level_info = calculateLevel($total_xp);
-        
+        $level_info = getLevelProgress($total_xp);
+
         echo json_encode([
             'success' => true,
             'data' => [
