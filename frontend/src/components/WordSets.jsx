@@ -13,41 +13,49 @@ const WordSets = () => {
   const [error, setError] = useState('');
   const [expandedSet, setExpandedSet] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showAddWordModal, setShowAddWordModal] = useState(false);
+  const [currentSetId, setCurrentSetId] = useState(null);
+  const [newWord, setNewWord] = useState({ 
+    original_word: '', 
+    translation: '', 
+    example_sentence: '' 
+  });
   const [newSet, setNewSet] = useState({ 
-  name: '', 
-  description: '' 
-});
+    name: '', 
+    description: '' 
+  });
 
-// Функция для создания нового набора
-const createNewSet = async () => {
-  try {
-    if (!newSet.name.trim()) {
-      alert('Пожалуйста, введите название набора');
-      return;
+  // Функция для создания нового набора
+  const createNewSet = async () => {
+    try {
+      if (!newSet.name.trim()) {
+        alert('Пожалуйста, введите название набора');
+        return;
+      }
+
+      console.log('➕ Создание нового набора...');
+      const response = await adminAPI.createWordSet({
+        name: newSet.name,
+        description: newSet.description || null
+      });
+
+      if (response.data.success) {
+        // Обновляем список наборов
+        await fetchWordSets();
+        // Закрываем модальное окно и сбрасываем форму
+        setShowCreateModal(false);
+        setNewSet({ name: '', description: '' });
+        console.log('✅ Набор успешно создан');
+        alert('Набор слов успешно создан!');
+      } else {
+        throw new Error(response.data.error);
+      }
+    } catch (error) {
+      console.error('❌ Ошибка создания набора:', error);
+      alert('Ошибка при создании набора: ' + (error.response?.data?.error || error.message));
     }
+  };
 
-    console.log('➕ Создание нового набора...');
-    const response = await adminAPI.createWordSet({
-      name: newSet.name,
-      description: newSet.description || null
-    });
-
-    if (response.data.success) {
-      // Обновляем список наборов
-      await fetchWordSets();
-      // Закрываем модальное окно и сбрасываем форму
-      setShowCreateModal(false);
-      setNewSet({ name: '', description: '' });
-      console.log('✅ Набор успешно создан');
-      alert('Набор слов успешно создан!');
-    } else {
-      throw new Error(response.data.error);
-    }
-  } catch (error) {
-    console.error('❌ Ошибка создания набора:', error);
-    alert('Ошибка при создании набора: ' + (error.response?.data?.error || error.message));
-  }
-};
   useEffect(() => {
     fetchWordSets();
   }, []);
@@ -167,91 +175,99 @@ const createNewSet = async () => {
     setEditingWord(null);
   };
 
-const deleteWord = async (setId, wordId) => {
+  const deleteWord = async (setId, wordId) => {
     if (!window.confirm('Вы уверены, что хотите удалить это слово?')) {
-        return;
+      return;
     }
 
     try {
-        console.log(`🗑️ Удаление слова ${wordId}...`);
-        const response = await adminAPI.deleteWord(wordId);
-        
-        if (response.data.success) {
-            // Обновляем счетчик и удаляем слово из списка
-            setWordSets(prev => prev.map(set => 
-                set.id === setId 
-                    ? {
-                        ...set,
-                        words: set.words?.filter(w => w.id !== wordId),
-                        word_count: (set.word_count || 1) - 1 // Уменьшаем счетчик
-                    }
-                    : set
-            ));
-            console.log('✅ Слово успешно удалено');
-        } else {
-            throw new Error(response.data.error);
-        }
-    } catch (error) {
-        console.error('❌ Ошибка удаления слова:', error);
-        alert('Ошибка при удалении слова: ' + (error.response?.data?.error || error.message));
-    }
-};
-
- const addNewWord = async (setId) => {
-  const newWord = prompt('Введите новое слово и перевод через запятую (например: apple, яблоко):');
-  if (!newWord) return;
-
-  const [original_word, translation] = newWord.split(',').map(s => s.trim());
-  if (!original_word || !translation) {
-    alert('Пожалуйста, введите слово и перевод через запятую');
-    return;
-  }
-
-  // Спрашиваем пример использования (опционально)
-  const example_sentence = prompt('Введите пример использования (можно оставить пустым):') || '';
-
-  try {
-    console.log(`➕ Добавление нового слова в набор ${setId}...`);
-    const response = await adminAPI.addWord({
-      set_id: setId,
-      original_word: original_word,
-      translation: translation,
-      example_sentence: example_sentence
-    });
-
-    if (response.data.success) {
-      // Создаем временный объект слова с id из ответа
-      const newWordObj = {
-        id: response.data.word_id, // ID из ответа сервера
-        word_set_id: setId,
-        original_word: original_word,
-        translation: translation,
-        example_sentence: example_sentence
-      };
-
-      // Обновляем счетчик слов в наборе и добавляем слово в массив
-      setWordSets(prev => prev.map(set => {
-        if (set.id === setId) {
-          // Проверяем, что words существует
-          const currentWords = set.words || [];
-          return { 
-            ...set, 
-            word_count: (set.word_count || 0) + 1,
-            words: [...currentWords, newWordObj] // Добавляем новое слово
-          };
-        }
-        return set;
-      }));
+      console.log(`🗑️ Удаление слова ${wordId}...`);
+      const response = await adminAPI.deleteWord(wordId);
       
-      console.log('✅ Новое слово успешно добавлено');
-    } else {
-      throw new Error(response.data.error);
+      if (response.data.success) {
+        // Обновляем счетчик и удаляем слово из списка
+        setWordSets(prev => prev.map(set => 
+          set.id === setId 
+            ? {
+                ...set,
+                words: set.words?.filter(w => w.id !== wordId),
+                word_count: (set.word_count || 1) - 1 // Уменьшаем счетчик
+              }
+            : set
+        ));
+        console.log('✅ Слово успешно удалено');
+      } else {
+        throw new Error(response.data.error);
+      }
+    } catch (error) {
+      console.error('❌ Ошибка удаления слова:', error);
+      alert('Ошибка при удалении слова: ' + (error.response?.data?.error || error.message));
     }
-  } catch (error) {
-    console.error('❌ Ошибка добавления слова:', error);
-    alert('Ошибка при добавлении слова: ' + (error.response?.data?.error || error.message));
-  }
-};
+  };
+
+  // Открыть модальное окно для добавления слова
+  const openAddWordModal = (setId) => {
+    setCurrentSetId(setId);
+    setNewWord({ original_word: '', translation: '', example_sentence: '' });
+    setShowAddWordModal(true);
+  };
+
+  // Добавить новое слово через модальное окно
+  const addNewWord = async () => {
+    // Проверяем обязательные поля
+    if (!newWord.original_word.trim() || !newWord.translation.trim()) {
+      alert('Пожалуйста, заполните обязательные поля: слово и перевод');
+      return;
+    }
+
+    try {
+      console.log(`➕ Добавление нового слова в набор ${currentSetId}...`);
+      const response = await adminAPI.addWord({
+        set_id: currentSetId,
+        original_word: newWord.original_word.trim(),
+        translation: newWord.translation.trim(),
+        example_sentence: newWord.example_sentence.trim() || null
+      });
+
+      if (response.data.success) {
+        // Создаем временный объект слова с id из ответа
+        const newWordObj = {
+          id: response.data.word_id, // ID из ответа сервера
+          word_set_id: currentSetId,
+          original_word: newWord.original_word.trim(),
+          translation: newWord.translation.trim(),
+          example_sentence: newWord.example_sentence.trim() || ''
+        };
+
+        // Обновляем счетчик слов в наборе и добавляем слово в массив
+        setWordSets(prev => prev.map(set => {
+          if (set.id === currentSetId) {
+            // Проверяем, что words существует
+            const currentWords = set.words || [];
+            return { 
+              ...set, 
+              word_count: (set.word_count || 0) + 1,
+              words: [...currentWords, newWordObj] // Добавляем новое слово
+            };
+          }
+          return set;
+        }));
+        
+        console.log('✅ Новое слово успешно добавлено');
+        
+        // Закрываем модальное окно и сбрасываем форму
+        setShowAddWordModal(false);
+        setNewWord({ original_word: '', translation: '', example_sentence: '' });
+        
+        alert('Слово успешно добавлено!');
+      } else {
+        throw new Error(response.data.error);
+      }
+    } catch (error) {
+      console.error('❌ Ошибка добавления слова:', error);
+      alert('Ошибка при добавлении слова: ' + (error.response?.data?.error || error.message));
+    }
+  };
 
   const deleteSet = async (setId) => {
     if (!window.confirm('Вы уверены, что хотите удалить этот набор слов? Все слова в наборе также будут удалены.')) {
@@ -297,15 +313,15 @@ const deleteWord = async (setId, wordId) => {
 
   return (
     <div className="word-sets">
-        <div className="admin-header">
-    <h1>Управление наборами слов</h1>
-    <button 
-      className="btn-create-set"
-      onClick={() => setShowCreateModal(true)}
-    >
-      + Создать новый набор
-    </button>
-  </div>
+      <div className="admin-header">
+        <h1>Управление наборами слов</h1>
+        <button 
+          className="btn-create-set"
+          onClick={() => setShowCreateModal(true)}
+        >
+          + Создать новый набор
+        </button>
+      </div>
 
       {wordSets.length === 0 ? (
         <div className="no-data">Нет наборов слов</div>
@@ -325,7 +341,7 @@ const deleteWord = async (setId, wordId) => {
                   className="btn-add-word"
                   onClick={(e) => {
                     e.stopPropagation();
-                    addNewWord(set.id);
+                    openAddWordModal(set.id);
                   }}
                 >
                   Добавить слово
@@ -427,66 +443,140 @@ const deleteWord = async (setId, wordId) => {
           </div>
         ))
       )}
+
       {/* Модальное окно для создания нового набора */}
-{showCreateModal && (
-  <div className="modal-overlay">
-    <div className="modal-content">
-      <div className="modal-header">
-        <h2>Создать новый набор слов</h2>
-        <button 
-          className="btn-close-modal"
-          onClick={() => {
-            setShowCreateModal(false);
-            setNewSet({ name: '', description: '' });
-          }}
-        >
-          ×
-        </button>
-      </div>
-      <div className="modal-body">
-        <div className="form-group">
-          <label htmlFor="setName">Название набора *</label>
-          <input
-            id="setName"
-            type="text"
-            value={newSet.name}
-            onChange={(e) => setNewSet(prev => ({ ...prev, name: e.target.value }))}
-            placeholder="Например: 'Базовые глаголы'"
-            autoFocus
-          />
+      {showCreateModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2>Создать новый набор слов</h2>
+              <button 
+                className="btn-close-modal"
+                onClick={() => {
+                  setShowCreateModal(false);
+                  setNewSet({ name: '', description: '' });
+                }}
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label htmlFor="setName">Название набора <span className='label-required'>*</span></label>
+                <input
+                  id="setName"
+                  type="text"
+                  value={newSet.name}
+                  onChange={(e) => setNewSet(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Например: 'Базовые глаголы'"
+                  autoFocus
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="setDescription">Описание (необязательно)</label>
+                <textarea 
+                  className='textarea-description'
+                  id="setDescription"
+                  value={newSet.description}
+                  onChange={(e) => setNewSet(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Краткое описание набора..."
+                  rows="3"
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button 
+                className="btn-cancel"
+                onClick={() => {
+                  setShowCreateModal(false);
+                  setNewSet({ name: '', description: '' });
+                }}
+              >
+                Отмена
+              </button>
+              <button 
+                className="btn-create"
+                onClick={createNewSet}
+                disabled={!newSet.name.trim()}
+              >
+                Создать набор
+              </button>
+            </div>
+          </div>
         </div>
-        <div className="form-group">
-          <label htmlFor="setDescription">Описание (необязательно)</label>
-          <textarea
-            id="setDescription"
-            value={newSet.description}
-            onChange={(e) => setNewSet(prev => ({ ...prev, description: e.target.value }))}
-            placeholder="Краткое описание набора..."
-            rows="3"
-          />
+      )}
+
+      {/* Модальное окно для добавления нового слова */}
+      {showAddWordModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2>Добавить новое слово</h2>
+              <button 
+                className="btn-close-modal"
+                onClick={() => {
+                  setShowAddWordModal(false);
+                  setNewWord({ original_word: '', translation: '', example_sentence: '' });
+                }}
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label htmlFor="wordOriginal">Слово (на английском) <span className='label-required'>*</span></label>
+                <input
+                  id="wordOriginal"
+                  type="text"
+                  value={newWord.original_word}
+                  onChange={(e) => setNewWord(prev => ({ ...prev, original_word: e.target.value }))}
+                  placeholder="Например: apple"
+                  autoFocus
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="wordTranslation">Перевод <span className='label-required'>*</span></label>
+                <input
+                  id="wordTranslation"
+                  type="text"
+                  value={newWord.translation}
+                  onChange={(e) => setNewWord(prev => ({ ...prev, translation: e.target.value }))}
+                  placeholder="Например: яблоко"
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="wordExample">Пример использования (необязательно)</label>
+                <textarea
+                 className='textarea-description'
+                  id="wordExample"
+                  value={newWord.example_sentence}
+                  onChange={(e) => setNewWord(prev => ({ ...prev, example_sentence: e.target.value }))}
+                  placeholder="Например: I eat an apple every day."
+                  rows="3"
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button 
+                className="btn-cancel"
+                onClick={() => {
+                  setShowAddWordModal(false);
+                  setNewWord({ original_word: '', translation: '', example_sentence: '' });
+                }}
+              >
+                Отмена
+              </button>
+              <button 
+                className="btn-create"
+                onClick={addNewWord}
+                disabled={!newWord.original_word.trim() || !newWord.translation.trim()}
+              >
+                Добавить слово
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
-      <div className="modal-footer">
-        <button 
-          className="btn-cancel"
-          onClick={() => {
-            setShowCreateModal(false);
-            setNewSet({ name: '', description: '' });
-          }}
-        >
-          Отмена
-        </button>
-        <button 
-          className="btn-create"
-          onClick={createNewSet}
-          disabled={!newSet.name.trim()}
-        >
-          Создать набор
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+      )}
     </div>
   );
 };

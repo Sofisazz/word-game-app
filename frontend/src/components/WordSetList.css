@@ -531,3 +531,10 @@
   flex-wrap: wrap;
   gap: 10px;
 }
+
+.label-required{
+  color: red;
+}
+.textarea-description{
+  font-family: 'Arial';
+}

@@ -102,7 +102,7 @@ try {
     $database = new Database();
     $db = $database->getConnection();
     
-    $query = "SELECT id, username, email, avatar, password_hash, role FROM users WHERE username = :username OR email = :username";
+    $query = "SELECT id, username, email, avatar, password_hash, role, last_activity, created_at FROM users WHERE username = :username OR email = :username";
     $stmt = $db->prepare($query);
     $stmt->bindParam(':username', $username);
     $stmt->execute();
@@ -120,13 +120,39 @@ try {
         throw new Exception('Invalid credentials', 401);
     }
     
+    // **ВАЖНО: ОБНОВЛЯЕМ ПОЛЕ last_activity ПРИ УСПЕШНОМ ВХОДЕ**
+    try {
+        $updateQuery = "UPDATE users SET last_activity = NOW() WHERE id = :user_id";
+        $updateStmt = $db->prepare($updateQuery);
+        $updateStmt->bindParam(':user_id', $user['id']);
+        $updateStmt->execute();
+        
+        error_log("Updated last_activity for user ID: " . $user['id']);
+        
+        // Получаем обновленные данные
+        $updatedQuery = "SELECT last_activity FROM users WHERE id = :user_id";
+        $updatedStmt = $db->prepare($updatedQuery);
+        $updatedStmt->bindParam(':user_id', $user['id']);
+        $updatedStmt->execute();
+        $updatedUser = $updatedStmt->fetch(PDO::FETCH_ASSOC);
+        
+        $user['last_activity'] = $updatedUser['last_activity'];
+        
+        error_log("New last_activity: " . $user['last_activity']);
+        
+    } catch (Exception $updateError) {
+        error_log("Failed to update last_activity: " . $updateError->getMessage());
+        // Продолжаем работу, не прерываем логин из-за этой ошибки
+    }
+    
     // Устанавливаем сессию для обычного пользователя
     $userSession = [
         'id' => $user['id'],
         'username' => $user['username'],
         'email' => $user['email'],
         'avatar' => $user['avatar'] ?? null,
-        'role' => $user['role'] ?? 'user'
+        'role' => $user['role'] ?? 'user',
+        'last_activity' => $user['last_activity'] ?? null
     ];
     
     error_log("User login successful: " . $userSession['username']);
@@ -138,6 +164,7 @@ try {
     
     $_SESSION['user_id'] = $user['id'];
     $_SESSION['user_role'] = $user['role'] ?? 'user';
+    $_SESSION['last_activity'] = $user['last_activity'] ?? null;
     
     // Очищаем буфер вывода
     ob_end_clean();

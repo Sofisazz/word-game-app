@@ -16,6 +16,7 @@ const PracticeWrongWords = () => {
   const [isFinished, setIsFinished] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [options, setOptions] = useState([]); // Для хранения вариантов ответов
   
   // Пагинация
   const [wordsPerPage] = useState(10);
@@ -26,40 +27,53 @@ const PracticeWrongWords = () => {
   useEffect(() => {
     fetchWrongAnswers();
   }, []);
-const fetchWrongAnswers = async () => {
-  try {
-    setLoading(true);
-    setError(null);
-    
-    console.log('🔍 Fetching wrong words from API...');
-    
-    const response = await wrongWordsAPI.getUserWrongWords();
-    
-    console.log('📥 API Response:', response);
-    console.log('📊 Response data:', response.data);
-    
-    if (response.data && Array.isArray(response.data)) {
-      console.log(`✅ Found ${response.data.length} wrong words`);
-      
-      if (response.data.length > 0) {
-        console.log('📝 First few words:', response.data.slice(0, 3));
+
+  // Генерация вариантов при изменении слова или режима
+  useEffect(() => {
+    if (practiceWords.length > 0 && currentIndex < practiceWords.length) {
+      const currentWord = practiceWords[currentIndex];
+      if (currentWord) {
+        const generatedOptions = generateOptions(currentWord, practiceWords);
+        setOptions(generatedOptions);
       }
-      
-      setWrongAnswers(response.data);
-    } else {
-      console.warn('⚠️ No wrong words array in response');
-      console.log('Full response:', response);
-      setWrongAnswers([]);
     }
-  } catch (error) {
-    console.error('❌ Error fetching wrong words:', error);
-    console.error('❌ Error details:', error.response ? error.response.data : error.message);
-    setError('Не удалось загрузить слова для повторения');
-    setWrongAnswers([]);
-  } finally {
-    setLoading(false);
-  }
-};
+  }, [currentIndex, practiceWords, mode]);
+
+  const fetchWrongAnswers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      console.log('🔍 Fetching wrong words from API...');
+      
+      const response = await wrongWordsAPI.getUserWrongWords();
+      
+      console.log('📥 API Response:', response);
+      console.log('📊 Response data:', response.data);
+      
+      if (response.data && Array.isArray(response.data)) {
+        console.log(`✅ Found ${response.data.length} wrong words`);
+        
+        if (response.data.length > 0) {
+          console.log('📝 First few words:', response.data.slice(0, 3));
+        }
+        
+        setWrongAnswers(response.data);
+      } else {
+        console.warn('⚠️ No wrong words array in response');
+        console.log('Full response:', response);
+        setWrongAnswers([]);
+      }
+    } catch (error) {
+      console.error('❌ Error fetching wrong words:', error);
+      console.error('❌ Error details:', error.response ? error.response.data : error.message);
+      setError('Не удалось загрузить слова для повторения');
+      setWrongAnswers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Статистика
   const getStatistics = () => {
     return getWrongWordsStatistics(wrongAnswers);
@@ -86,37 +100,43 @@ const fetchWrongAnswers = async () => {
     setPracticeWords(wordsForPractice);
   };
 
-  // Отметить слово как правильное (удалить из списка ошибок)
-  const markAsCorrect = async (wordId) => {
-    try {
-      // Используем word_id из wrong_answers таблицы
-      const wordToDelete = wrongAnswers.find(w => (w.word_id || w.id) === wordId);
-      if (!wordToDelete) return;
+  // Обработка выбора ответа (для режимов choice и listening)
+  const handleChoiceAnswer = async (selected) => {
+    const currentWord = practiceWords[currentIndex];
+    const isCorrect = selected === currentWord.translation;
+    
+    if (isCorrect) {
+      setScore(score + 1);
+    } else {
+      setShowAnswer(true);
+      // Увеличиваем счетчик ошибок в БД
+      await incrementMistakes(currentWord.id);
+    }
+    
+    setTimeout(() => {
+      setShowAnswer(false);
+      nextWord();
+    }, 1500);
+  };
 
-      await wrongWordsAPI.deleteWrongWord(wordToDelete.id || wordToDelete.word_id);
-      
-      // Обновляем локальное состояние
-      setWrongAnswers(prev => prev.filter(word => 
-        (word.id || word.word_id) !== wordId
-      ));
-      
-      // Если в режиме практики, удаляем из practiceWords
-      if (mode) {
-        setPracticeWords(prev => prev.filter(word => word.id !== wordId));
-        
-        // Если это текущее слово в практике, переходим к следующему
-        const currentWord = practiceWords[currentIndex];
-        if (currentWord && currentWord.id === wordId) {
-          if (currentIndex < practiceWords.length - 1) {
-            setCurrentIndex(currentIndex + 1);
-          } else {
-            setIsFinished(true);
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Ошибка удаления слова:', error);
-      setError('Не удалось отметить слово как выученное');
+  // Обработка ввода ответа (для режима typing)
+  const handleTypingAnswer = async (e) => {
+    e.preventDefault();
+    const currentWord = practiceWords[currentIndex];
+    const isCorrect = userInput.trim().toLowerCase() === currentWord.translation.toLowerCase();
+    
+    if (isCorrect) {
+      setScore(score + 1);
+      setUserInput('');
+      setTimeout(() => nextWord(), 1000);
+    } else {
+      setShowAnswer(true);
+      // Увеличиваем счетчик ошибок в БД
+      await incrementMistakes(currentWord.id);
+      setTimeout(() => {
+        setShowAnswer(false);
+        setUserInput('');
+      }, 2000);
     }
   };
 
@@ -145,66 +165,33 @@ const fetchWrongAnswers = async () => {
     }
   };
 
-  // Очистить все неправильные слова
-  const clearAllWrongAnswers = async () => {
-    if (window.confirm('Вы уверены, что хотите удалить все слова из списка для повторения? Это действие нельзя отменить.')) {
-      try {
-        await wrongWordsAPI.clearAllWrongWords();
+  // Отметить слово как правильное
+  const markAsCorrect = async (wordId) => {
+    try {
+      const wordToDelete = wrongAnswers.find(w => (w.word_id || w.id) === wordId);
+      if (!wordToDelete) return;
+
+      await wrongWordsAPI.deleteWrongWord(wordToDelete.id || wordToDelete.word_id);
+      
+      setWrongAnswers(prev => prev.filter(word => 
+        (word.id || word.word_id) !== wordId
+      ));
+      
+      if (mode) {
+        setPracticeWords(prev => prev.filter(word => word.id !== wordId));
         
-        // Очищаем локальное состояние
-        setWrongAnswers([]);
-        setPracticeWords([]);
-        if (mode) setMode(null);
-        
-      } catch (error) {
-        console.error('Ошибка очистки слов:', error);
-        setError('Не удалось очистить список слов');
+        const currentWord = practiceWords[currentIndex];
+        if (currentWord && currentWord.id === wordId) {
+          if (currentIndex < practiceWords.length - 1) {
+            setCurrentIndex(currentIndex + 1);
+          } else {
+            setIsFinished(true);
+          }
+        }
       }
-    }
-  };
-
-  // Генерация вариантов ответов
-  const handleGenerateOptions = (currentWord) => {
-    return generateOptions(currentWord, practiceWords);
-  };
-
-  // Обработка выбора ответа
-  const handleChoiceAnswer = async (selected) => {
-    const currentWord = practiceWords[currentIndex];
-    const isCorrect = selected === currentWord.translation;
-    
-    if (isCorrect) {
-      setScore(score + 1);
-    } else {
-      setShowAnswer(true);
-      // Увеличиваем счетчик ошибок в БД
-      await incrementMistakes(currentWord.id);
-    }
-    
-    setTimeout(() => {
-      setShowAnswer(false);
-      nextWord();
-    }, 1500);
-  };
-
-  // Обработка ввода ответа
-  const handleTypingAnswer = async (e) => {
-    e.preventDefault();
-    const currentWord = practiceWords[currentIndex];
-    const isCorrect = userInput.trim().toLowerCase() === currentWord.translation.toLowerCase();
-    
-    if (isCorrect) {
-      setScore(score + 1);
-      setUserInput('');
-      setTimeout(() => nextWord(), 1000);
-    } else {
-      setShowAnswer(true);
-      // Увеличиваем счетчик ошибок в БД
-      await incrementMistakes(currentWord.id);
-      setTimeout(() => {
-        setShowAnswer(false);
-        setUserInput('');
-      }, 2000);
+    } catch (error) {
+      console.error('Ошибка удаления слова:', error);
+      setError('Не удалось отметить слово как выученное');
     }
   };
 
@@ -217,7 +204,22 @@ const fetchWrongAnswers = async () => {
     }
   };
 
-  // Пагинация
+  // Очистить все неправильные слова
+  const clearAllWrongAnswers = async () => {
+    if (window.confirm('Вы уверены, что хотите удалить все слова из списка для повторения? Это действие нельзя отменить.')) {
+      try {
+        await wrongWordsAPI.clearAllWrongWords();
+        setWrongAnswers([]);
+        setPracticeWords([]);
+        if (mode) setMode(null);
+      } catch (error) {
+        console.error('Ошибка очистки слов:', error);
+        setError('Не удалось очистить список слов');
+      }
+    }
+  };
+
+  // Пагинационные функции
   const handleLoadMore = () => {
     if (showAllWords) {
       setCurrentPage(prev => Math.min(prev + 1, totalPages));
@@ -323,7 +325,6 @@ const fetchWrongAnswers = async () => {
               <span className="stat-label">Всего ошибок:</span>
               <span className="stat-value">{statistics.totalMistakes}</span>
             </div>
-
           </div>
         </div>
 
@@ -389,7 +390,6 @@ const fetchWrongAnswers = async () => {
                     <span className="mistakes" title="Количество ошибок">
                       {word.mistakes || 1} {word.mistakes === 1 ? 'раз' : 'раза'}
                     </span>
-                 
                   </div>
                   <div className="word-actions">
                     <button 
@@ -403,7 +403,6 @@ const fetchWrongAnswers = async () => {
                 </div>
               ))}
               
-              {/* Пагинация */}
               <div className="pagination-controls">
                 {!showAllWords && wrongAnswers.length > wordsPerPage && (
                   <button 
@@ -581,9 +580,23 @@ const fetchWrongAnswers = async () => {
           )}
         </div>
 
-        {mode === 'choice' && (
+        {showAnswer && (
+          <div className="answer-feedback">
+            <div className="correct-answer">
+              <strong>Правильный ответ:</strong> {currentWord.translation}
+            </div>
+            {mode === 'typing' && userInput && (
+              <div className="user-answer">
+                <strong>Ваш ответ:</strong> {userInput}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Варианты ответов для режимов choice и listening */}
+        {(mode === 'choice' || mode === 'listening') && (
           <div className="options-grid">
-            {handleGenerateOptions(currentWord).map((option, idx) => (
+            {options.map((option, idx) => (
               <button
                 key={idx}
                 onClick={() => handleChoiceAnswer(option)}
@@ -596,6 +609,7 @@ const fetchWrongAnswers = async () => {
           </div>
         )}
 
+        {/* Поле ввода для режима typing */}
         {mode === 'typing' && (
           <form onSubmit={handleTypingAnswer} className="typing-form">
             <input
@@ -615,19 +629,6 @@ const fetchWrongAnswers = async () => {
               Проверить
             </button>
           </form>
-        )}
-
-        {showAnswer && (
-          <div className="answer-feedback">
-            <div className="correct-answer">
-              <strong>Правильный ответ:</strong> {currentWord.translation}
-            </div>
-            {mode === 'typing' && userInput && (
-              <div className="user-answer">
-                <strong>Ваш ответ:</strong> {userInput}
-              </div>
-            )}
-          </div>
         )}
 
         <div className="game-controls">
