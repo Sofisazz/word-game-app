@@ -2,7 +2,6 @@
 require_once '../config/database.php';
 require_once '../cors.php';
 
-// Включим отладку
 error_log("Upload avatar called");
 error_log("POST data: " . print_r($_POST, true));
 error_log("FILES data: " . print_r($_FILES, true));
@@ -21,10 +20,8 @@ if (!isset($_POST['user_id'])) {
 
 $user_id = $_POST['user_id'];
 
-// Папка для загрузки аватаров (относительно этого файла)
 $upload_dir = __DIR__ . '/../uploads/avatars/';
 
-// Создаем папку если ее нет
 if (!file_exists($upload_dir)) {
     mkdir($upload_dir, 0777, true);
 }
@@ -37,9 +34,9 @@ if (!isset($_FILES['avatar']) || $_FILES['avatar']['error'] !== UPLOAD_ERR_OK) {
 
 $file = $_FILES['avatar'];
 $allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-$max_size = 2 * 1024 * 1024; // 2MB
+$max_size = 2 * 1024 * 1024;
 
-// Проверяем тип файла
+
 $finfo = finfo_open(FILEINFO_MIME_TYPE);
 $mime_type = finfo_file($finfo, $file['tmp_name']);
 finfo_close($finfo);
@@ -50,31 +47,27 @@ if (!in_array($mime_type, $allowed_types)) {
     exit;
 }
 
-// Проверяем размер файла
+
 if ($file['size'] > $max_size) {
     http_response_code(400);
     echo json_encode(['error' => 'File size must be less than 2MB']);
     exit;
 }
 
-// Генерируем уникальное имя файла
 $file_extension = pathinfo($file['name'], PATHINFO_EXTENSION);
 $filename = 'avatar_' . $user_id . '_' . time() . '.' . $file_extension;
 $filepath = $upload_dir . $filename;
 
-// Перемещаем загруженный файл
 if (!move_uploaded_file($file['tmp_name'], $filepath)) {
     http_response_code(500);
     echo json_encode(['error' => 'Failed to save file']);
     exit;
 }
 
-// Обновляем аватар в базе данных
 $database = new Database();
 $db = $database->getConnection();
 
 try {
-    // URL для доступа к аватару (относительный путь от корня сайта)
     $avatar_url = '/backend/uploads/avatars/' . $filename;
     
     $update_query = "UPDATE users SET avatar = :avatar WHERE id = :user_id";
@@ -91,7 +84,6 @@ try {
     ]);
     
 } catch (PDOException $e) {
-    // Удаляем файл если не удалось обновить БД
     unlink($filepath);
     http_response_code(500);
     echo json_encode(['error' => 'Database error: ' . $e->getMessage()]);

@@ -15,7 +15,6 @@ require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../config/cors.php';
 require_once __DIR__ . '/auth.php';
 
-// Проверка авторизации
 $auth = new Auth();
 $user_id = $auth->validateToken();
 

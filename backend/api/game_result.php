@@ -1,5 +1,5 @@
 <?php
-// backend/api/game_result.php
+
 
 header('Access-Control-Allow-Origin: http://localhost:3000');
 header('Access-Control-Allow-Credentials: true');
@@ -17,7 +17,7 @@ function getLevelProgress($total_xp) {
     $level = 1;
     $xp_accumulated = 0;
     
-    // Сначала находим уровень
+ 
     while (true) {
         $xp_for_next_level = $base_xp + ($level - 1) * 100;
         
@@ -29,16 +29,16 @@ function getLevelProgress($total_xp) {
         $level++;
     }
     
-    // XP в текущем уровне
+
     $current_xp_in_level = $total_xp - $xp_accumulated;
     
-    // XP для следующего уровня
+    
     $next_level_xp_required = $base_xp + ($level - 1) * 100;
     
-    // XP до следующего уровня
+ 
     $xp_needed_for_next_level = max(0, $next_level_xp_required - $current_xp_in_level);
     
-    // Процент прогресса
+
     $progress_percentage = $next_level_xp_required > 0 ? 
         round(max(0, min(100, $current_xp_in_level / $next_level_xp_required * 100)), 1) : 0;
     
@@ -52,7 +52,7 @@ function getLevelProgress($total_xp) {
         'progress_percentage' => $progress_percentage
     ];
 }
-// ДОБАВЬ ЭТУ ФУНКЦИЮ В game_result.php
+
 function calculateNewLevel($total_xp) {
     $base_xp = 250;
     $level = 1;
@@ -69,7 +69,7 @@ function calculateNewLevel($total_xp) {
         $level++;
     }
 }
-// Включим логирование
+
 error_log("=== SAVE GAME RESULT START ===");
 error_log("Request method: " . $_SERVER['REQUEST_METHOD']);
 error_log("Input data: " . file_get_contents('php://input'));
@@ -107,18 +107,18 @@ $pdo = $database->getConnection();
 try {
     $pdo->beginTransaction();
 
-    // Рассчитываем XP
+
     $xp_earned = $correct_answers * 10;
     
-    // Бонус за все правильные ответы
+
     if ($correct_answers === $total_questions && $total_questions > 0) {
-        $xp_earned += 50; // Бонус за идеальную игру
+        $xp_earned += 50;
         error_log("Perfect game bonus! +50 XP");
     }
     
     error_log("XP earned: $xp_earned");
 
-    // 1. Сохраняем в game_results
+
     $stmt = $pdo->prepare("
         INSERT INTO game_results (user_id, game_type, score, total_questions, correct_answers, words_learned, time_spent, xp_earned)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -145,21 +145,21 @@ try {
         throw new Exception("Failed to save game result: " . $errorInfo[2]);
     }
 
-    // 2. Обновляем или создаем запись в user_stats
+
     $checkStmt = $pdo->prepare("SELECT * FROM user_stats WHERE user_id = ?");
     $checkStmt->execute([$user_id]);
     
     if ($checkStmt->rowCount() > 0) {
-        // Получаем текущие данные пользователя
+   
         $currentStats = $checkStmt->fetch(PDO::FETCH_ASSOC);
         $current_total_xp = (int)$currentStats['total_xp'];
         $new_total_xp = $current_total_xp + $xp_earned;
         $new_level = calculateNewLevel($new_total_xp);
         
-        // Увеличиваем счетчик идеальных игр если нужно
+ 
         $perfect_games_increment = ($correct_answers === $total_questions && $total_questions > 0) ? 1 : 0;
         
-        // Обновляем существующую запись
+        
         $stmt = $pdo->prepare("
             UPDATE user_stats 
             SET total_games_played = total_games_played + 1,
@@ -183,7 +183,7 @@ try {
         
         error_log("Updating user stats - Old level: {$currentStats['level']}, New level: $new_level, Total XP: $new_total_xp");
     } else {
-        // Создаем новую запись
+ 
         $new_level = calculateNewLevel($xp_earned);
         
         $stmt = $pdo->prepare("
@@ -204,12 +204,12 @@ try {
         
         $result = $stmt->execute([
             $user_id, 
-            1, // total_games_played
-            $correct_answers, // total_correct_answers
-            $xp_earned, // total_xp
-            $new_level, // level
-            $words_learned, // total_words_learned
-            ($correct_answers === $total_questions && $total_questions > 0) ? 1 : 0 // perfect_games
+            1, 
+            $correct_answers, 
+            $xp_earned, 
+            $new_level, 
+            $words_learned, 
+            ($correct_answers === $total_questions && $total_questions > 0) ? 1 : 0 
         ]);
         
         error_log("Creating new user stats - Level: $new_level, Total XP: $xp_earned");
@@ -222,7 +222,7 @@ try {
         error_log("Failed to update user_stats: " . print_r($errorInfo, true));
     }
 
-    // 3. Обновляем прогресс по словам и сохраняем неправильные ответы
+
     if (isset($input['results']) && is_array($input['results'])) {
         error_log("Processing word results: " . count($input['results']) . " words");
         
@@ -239,7 +239,7 @@ try {
                     error_log("Correct answer for word_id: " . $word_id);
                     
                     try {
-                        // ИСПРАВЛЕНО: times_correct вместо times_bcorrect
+                     
                         $updateStmt = $pdo->prepare("
                             INSERT INTO word_progress (user_id, word_id, times_seen, times_correct, last_reviewed)
                             VALUES (?, ?, 1, 1, NOW())
@@ -283,7 +283,7 @@ try {
                             error_log("Created wrong_answers record for word_id: " . $word_id);
                         }
                         
-                        // ИСПРАВЛЕНО: times_correct вместо times_bcorrect
+           
                         $updateStmt = $pdo->prepare("
                             INSERT INTO word_progress (user_id, word_id, times_seen, times_correct, last_reviewed)
                             VALUES (?, ?, 1, 0, NOW())
@@ -303,27 +303,27 @@ try {
         error_log("Total correct: $correct_count, Total incorrect: $incorrect_count");
     }
 
-    // 4. Проверяем и выдаем достижения (существующий код остается)
+
     error_log("=== CHECKING ACHIEVEMENTS FOR USER $user_id ===");
     
     $newAchievements = [];
     
     try {
-        // Получаем все достижения
+
         $achievementsQuery = $pdo->prepare("SELECT * FROM achievements");
         $achievementsQuery->execute();
         $allAchievements = $achievementsQuery->fetchAll(PDO::FETCH_ASSOC);
         
         error_log("Total achievements available: " . count($allAchievements));
         
-        // Получаем текущие достижения пользователя
+
         $userAchievementsQuery = $pdo->prepare("SELECT achievement_id FROM user_achievements WHERE user_id = ?");
         $userAchievementsQuery->execute([$user_id]);
         $userAchievementIds = $userAchievementsQuery->fetchAll(PDO::FETCH_COLUMN, 0);
         
         error_log("User already has achievements: " . print_r($userAchievementIds, true));
         
-        // Получаем обновленную статистику пользователя
+        
         $fullStatsQuery = $pdo->prepare("
             SELECT 
                 total_games_played,
@@ -343,8 +343,7 @@ try {
             
             foreach ($allAchievements as $achievement) {
                 $achievementId = (int)$achievement['id'];
-                
-                // Пропускаем, если пользователь уже имеет это достижение
+
                 if (in_array($achievementId, $userAchievementIds)) {
                     error_log("Achievement $achievementId already earned, skipping");
                     continue;
@@ -397,7 +396,7 @@ try {
                 }
                 
                 if ($achieved) {
-                    error_log("🎉 User earned achievement: {$achievement['name']} (ID: $achievementId)");
+                    error_log("User earned achievement: {$achievement['name']} (ID: $achievementId)");
                     
                     $insertAchievement = $pdo->prepare("
                         INSERT INTO user_achievements (user_id, achievement_id, earned_at) 
@@ -410,7 +409,7 @@ try {
                         if ($xpReward > 0) {
                             error_log("Adding $xpReward XP for achievement");
                             
-                            // Пересчитываем уровень с учетом бонусных XP
+             
                             $new_total_xp = (int)$userFullStats['total_xp'] + $xpReward;
                             $new_level = calculateNewLevel($new_total_xp);
                             
@@ -443,11 +442,11 @@ try {
         error_log("Error checking achievements: " . $e->getMessage());
     }
 
-    // Коммитим транзакцию
+
     $pdo->commit();
     error_log("Transaction committed successfully");
 
-    // Обновляем last_activity
+
     try {
         $updateActivityStmt = $pdo->prepare("UPDATE users SET last_activity = NOW() WHERE id = ?");
         $updateActivityStmt->execute([$user_id]);
@@ -456,27 +455,25 @@ try {
         error_log("⚠️ Failed to update last_activity: " . $e->getMessage());
     }
 
-    // ПОСЛЕ этого кода (строка ~270):
+
 $stmt = $pdo->prepare("SELECT * FROM user_stats WHERE user_id = ?");
 $stmt->execute([$user_id]);
 $user_stats = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// ДОБАВИТЬ ЭТО:
-// Рассчитываем level_info
+
 if ($user_stats) {
     $total_xp = $user_stats['total_xp'] ?? 0;
     $level_info = getLevelProgress($total_xp); 
 } else {
     $level_info = [];
 }
-    // Получаем количество слов в wrong_answers
+
     $wrongCountStmt = $pdo->prepare("SELECT COUNT(*) as wrong_count FROM wrong_answers WHERE user_id = ?");
     $wrongCountStmt->execute([$user_id]);
     $wrong_count = $wrongCountStmt->fetch(PDO::FETCH_ASSOC)['wrong_count'];
     
     error_log("Total wrong words in database for user $user_id: $wrong_count");
 
-// Формируем ответ
 $response = [
     'success' => true,
     'message' => 'Результат сохранён',
@@ -484,9 +481,9 @@ $response = [
     'correct_answers' => $correct_answers,
     'wrong_count' => $wrong_count,
     'user_stats' => $user_stats,
-    'level_info' => $level_info  // ДОБАВИТЬ ЭТУ СТРОКУ!
+    'level_info' => $level_info  
 ];
-    // Добавляем информацию о новых достижениях, если они есть
+
     if (count($newAchievements) > 0) {
         $response['new_achievements'] = $newAchievements;
         $response['message'] = 'Результат сохранён. Получены новые достижения!';
@@ -500,7 +497,7 @@ $response['event_data'] = [
     echo json_encode($response);
 
 } catch (Exception $e) {
-    // Откатываем транзакцию при ошибке
+
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }

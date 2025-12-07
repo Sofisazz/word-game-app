@@ -1,4 +1,4 @@
-// backend\api\user.php или создаем новый файл practice.php
+
 <?php
 
 require_once '../config/database.php';
@@ -12,7 +12,7 @@ $user = new User($db);
 
 $data = json_decode(file_get_contents("php://input"));
 
-// Сохраняем неправильные ответы
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($data->user_id) && !empty($data->word_id)) {
         $query = "INSERT INTO wrong_answers (user_id, word_id, mistakes, last_practice) 
@@ -35,7 +35,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Получаем список неправильных ответов пользователя
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if (!empty($_GET['user_id'])) {
         $query = "SELECT wa.*, w.original_word, w.translation, w.example_sentence 

@@ -4,7 +4,7 @@ require_once __DIR__ . '/../config/cors.php';
 
 header('Content-Type: application/json');
 
-// Включим логирование для отладки
+
 error_log("=== UPDATE PROFILE START ===");
 error_log("Request data: " . file_get_contents('php://input'));
 
@@ -25,13 +25,13 @@ if (!isset($data['user_id'])) {
 
 $user_id = (int)$data['user_id'];
 $display_name = $data['display_name'] ?? null;
-$avatar = $data['avatar'] ?? null; // Добавляем аватар
+$avatar = $data['avatar'] ?? null; 
 
 $database = new Database();
 $db = $database->getConnection();
 
 try {
-    // Обновляем данные пользователя
+
     $update_fields = [];
     $params = [':user_id' => $user_id];
     
@@ -45,7 +45,7 @@ try {
         $params[':avatar'] = trim($avatar);
     }
     
-    // Если есть что обновлять
+
     if (!empty($update_fields)) {
         $query = "UPDATE users SET " . implode(', ', $update_fields) . " WHERE id = :user_id";
         error_log("Update query: " . $query);
@@ -57,7 +57,7 @@ try {
         error_log("Rows affected: " . $stmt->rowCount());
     }
     
-    // Получаем обновленные данные пользователя
+
     $user_query = "SELECT id, username, email, display_name, avatar, role FROM users WHERE id = :user_id";
     $user_stmt = $db->prepare($user_query);
     $user_stmt->execute([':user_id' => $user_id]);
@@ -69,11 +69,11 @@ try {
         exit;
     }
     
-    // Формируем полный URL для аватарки (если она есть)
+
     if (!empty($user['avatar'])) {
-        // Проверяем, есть ли уже полный URL
+
         if (strpos($user['avatar'], 'http://') === false && strpos($user['avatar'], 'https://') === false) {
-            // Добавляем только если это относительный путь
+
             $user['avatar'] = 'http://localhost' . $user['avatar'];
         }
     }

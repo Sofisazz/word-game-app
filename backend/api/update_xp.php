@@ -24,16 +24,16 @@ try {
         $database = new Database();
         $pdo = $database->getConnection();
         
-        // Начинаем транзакцию
+
         $pdo->beginTransaction();
         
-        // Получаем текущие данные
+ 
         $stmt = $pdo->prepare("SELECT total_xp, level FROM user_stats WHERE user_id = ?");
         $stmt->execute([$user_id]);
         $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if (!$user_data) {
-            // Создаем запись если нет
+  
             $insert_stmt = $pdo->prepare("INSERT INTO user_stats (user_id, total_xp, level) VALUES (?, ?, 1)");
             $insert_stmt->execute([$user_id, $xp_earned]);
             $new_total_xp = $xp_earned;
@@ -44,23 +44,23 @@ try {
             $new_total_xp = $current_total_xp + $xp_earned;
             $new_level = $current_level;
             
-            // Проверяем, нужно ли повысить уровень
+   
             $xp_needed_for_next_level = getXpForNextLevel($current_level);
             $xp_in_current_level = $new_total_xp;
             
-            // Вычитаем XP всех предыдущих уровней
+
             for ($i = 1; $i < $current_level; $i++) {
                 $xp_in_current_level -= getXpForNextLevel($i);
             }
             
-            // Если XP достаточно для следующего уровня
+          
             while ($xp_in_current_level >= $xp_needed_for_next_level && $xp_needed_for_next_level > 0) {
                 $new_level++;
                 $xp_in_current_level -= $xp_needed_for_next_level;
                 $xp_needed_for_next_level = getXpForNextLevel($new_level);
             }
             
-            // Обновляем данные
+      
             $update_stmt = $pdo->prepare("UPDATE user_stats SET total_xp = ?, level = ? WHERE user_id = ?");
             $update_stmt->execute([$new_total_xp, $new_level, $user_id]);
         }

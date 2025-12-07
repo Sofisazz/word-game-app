@@ -8,7 +8,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     exit;
 }
 
-// Проверяем, есть ли активная сессия
 if (isset($_SESSION['user'])) {
     echo json_encode([
         'success' => true,

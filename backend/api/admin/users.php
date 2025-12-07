@@ -1,5 +1,5 @@
 <?php
-// backend/api/admin/users.php
+
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../config/cors.php';
@@ -23,7 +23,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 try {
     switch ($method) {
         case 'GET':
-            // Получение списка пользователей
+         
             $stmt = $pdo->query("
                 SELECT id, username, email, display_name, created_at, last_activity,avatar, role
                 FROM users 
@@ -35,7 +35,7 @@ try {
             break;
             
         case 'DELETE':
-            // Удаление пользователя
+
             $userId = $_GET['user_id'] ?? null;
             
             if (!$userId) {
@@ -44,20 +44,20 @@ try {
                 exit;
             }
             
-            // Получаем текущего пользователя
+        
             $currentUser = getUserSession();
             
-            // Не позволяем удалить самого себя
+          
             if ($userId == $currentUser['id']) {
                 http_response_code(400);
                 echo json_encode(['error' => 'Нельзя удалить себя']);
                 exit;
             }
             
-            // Начинаем транзакцию
+  
             $pdo->beginTransaction();
             
-            // Удаляем пользователя
+
             $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
             $stmt->execute([$userId]);
             

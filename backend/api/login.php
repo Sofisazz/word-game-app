@@ -1,30 +1,30 @@
 <?php
-// Включите заголовки CORS в самом начале
+
 header('Access-Control-Allow-Origin: http://localhost:3000');
 header('Access-Control-Allow-Credentials: true');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 header('Content-Type: application/json; charset=utf-8');
 
-// Обработка preflight запросов
+
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
-// Отключите вывод ошибок на экран (для продакшена)
+
 ini_set('display_errors', 0);
 ini_set('display_startup_errors', 0);
 error_reporting(E_ALL);
 
-// Логируем ошибки в файл
+
 ini_set('log_errors', 1);
 ini_set('error_log', __DIR__ . '/../logs/php_errors.log');
 
-// Начнем буферизацию вывода, чтобы ловить случайные выводы
+
 ob_start();
 
 try {
-    // Проверяем наличие файлов
+
     $config_path = __DIR__ . '/../config/database.php';
     $cors_path = __DIR__ . '/../config/cors.php';
     $auth_path = __DIR__ . '/auth.php';
@@ -50,7 +50,7 @@ try {
     
     error_log("All files loaded successfully");
     
-    // Логируем запрос
+  
     error_log("=== LOGIN REQUEST START ===");
     error_log("Request method: " . $_SERVER['REQUEST_METHOD']);
     error_log("Input data: " . file_get_contents('php://input'));
@@ -80,7 +80,7 @@ try {
     
     error_log("Processing login for: $username");
     
-    // Проверка на админ-доступ
+
     if ($username === 'admin' && $password === 'admin') {
         error_log("Admin login successful");
         $adminUser = [
@@ -98,7 +98,7 @@ try {
         exit;
     }
     
-    // Обычная проверка пользователей из БД
+
     $database = new Database();
     $db = $database->getConnection();
     
@@ -120,7 +120,7 @@ try {
         throw new Exception('Invalid credentials', 401);
     }
     
-    // **ВАЖНО: ОБНОВЛЯЕМ ПОЛЕ last_activity ПРИ УСПЕШНОМ ВХОДЕ**
+
     try {
         $updateQuery = "UPDATE users SET last_activity = NOW() WHERE id = :user_id";
         $updateStmt = $db->prepare($updateQuery);
@@ -129,7 +129,7 @@ try {
         
         error_log("Updated last_activity for user ID: " . $user['id']);
         
-        // Получаем обновленные данные
+
         $updatedQuery = "SELECT last_activity FROM users WHERE id = :user_id";
         $updatedStmt = $db->prepare($updatedQuery);
         $updatedStmt->bindParam(':user_id', $user['id']);
@@ -142,10 +142,10 @@ try {
         
     } catch (Exception $updateError) {
         error_log("Failed to update last_activity: " . $updateError->getMessage());
-        // Продолжаем работу, не прерываем логин из-за этой ошибки
+
     }
     
-    // Устанавливаем сессию для обычного пользователя
+
     $userSession = [
         'id' => $user['id'],
         'username' => $user['username'],
@@ -157,7 +157,7 @@ try {
     
     error_log("User login successful: " . $userSession['username']);
     
-    // Начинаем сессию только если нужно
+
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
@@ -166,7 +166,7 @@ try {
     $_SESSION['user_role'] = $user['role'] ?? 'user';
     $_SESSION['last_activity'] = $user['last_activity'] ?? null;
     
-    // Очищаем буфер вывода
+
     ob_end_clean();
     
     echo json_encode([
@@ -176,7 +176,7 @@ try {
     ]);
     
 } catch (Exception $e) {
-    // Очищаем буфер вывода
+
     ob_end_clean();
     
     $code = $e->getCode();

@@ -1,29 +1,23 @@
 <?php
-// backend/api/admin/word_sets.php
+
 
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../config/cors.php';
 
-// Пропускаем проверку auth.php для тестирования
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
-// ВРЕМЕННО: отключаем проверку администратора для тестирования
-// if (!isAdmin()) {
-//     http_response_code(403);
-//     echo json_encode(['error' => 'Доступ запрещен']);
-//     exit;
-// }
 
 $database = new Database();
 $pdo = $database->getConnection();
 
 $method = $_SERVER['REQUEST_METHOD'];
 
-// Функция для проверки существования таблицы
+
 function tableExists($pdo, $tableName) {
     try {
         $result = $pdo->query("SELECT 1 FROM information_schema.tables 
@@ -38,7 +32,7 @@ function tableExists($pdo, $tableName) {
 try {
     switch ($method) {
         case 'GET':
-            // Получение всех наборов слов
+ 
             $stmt = $pdo->query("
                 SELECT ws.*, COUNT(w.id) as word_count 
                 FROM word_sets ws 
@@ -56,17 +50,17 @@ try {
             break;
             
         case 'POST':
-            // Создание нового набора слов
+
             $input = json_decode(file_get_contents('php://input'), true);
             
-            // Валидация
+  
             if (empty($input['name'])) {
                 http_response_code(400);
                 echo json_encode(['error' => 'Название набора обязательно']);
                 exit;
             }
             
-            // Проверяем, не существует ли уже набор с таким названием
+
             $stmt = $pdo->prepare("SELECT id FROM word_sets WHERE name = ?");
             $stmt->execute([$input['name']]);
             if ($stmt->fetch()) {
@@ -75,7 +69,7 @@ try {
                 exit;
             }
             
-            // Вставляем новый набор
+      
             $stmt = $pdo->prepare("
                 INSERT INTO word_sets (name, description) 
                 VALUES (?, ?)
@@ -90,7 +84,7 @@ try {
             
             $set_id = $pdo->lastInsertId();
             
-            // Получаем созданный набор с подсчетом слов
+     
             $stmt = $pdo->prepare("
                 SELECT ws.*, 0 as word_count 
                 FROM word_sets ws 
@@ -108,7 +102,7 @@ try {
             break;
             
         case 'DELETE':
-            // Удаление набора слов
+
             $setId = $_GET['set_id'] ?? null;
             
             if (!$setId) {
@@ -117,7 +111,7 @@ try {
                 exit;
             }
             
-            // Проверяем, существует ли набор
+         
             $stmt = $pdo->prepare("SELECT id FROM word_sets WHERE id = ?");
             $stmt->execute([$setId]);
             if (!$stmt->fetch()) {
@@ -126,18 +120,18 @@ try {
                 exit;
             }
             
-            // Начинаем транзакцию
+  
             $pdo->beginTransaction();
             
             try {
-                // 1. Получаем ID всех слов из этого набора
+           
                 $stmt = $pdo->prepare("SELECT id FROM words WHERE word_set_id = ?");
                 $stmt->execute([$setId]);
                 $wordIds = $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
                 
-                // 2. Если есть прогресс по этим словам, удаляем его
+       
                 if (!empty($wordIds) && tableExists($pdo, 'word_progress')) {
-                    // Создаем строку с ID слов для IN запроса
+         
                     $placeholders = implode(',', array_fill(0, count($wordIds), '?'));
                     
                     $stmt = $pdo->prepare("
@@ -147,11 +141,11 @@ try {
                     $stmt->execute($wordIds);
                 }
                 
-                // 3. Удаляем слова из набора
+     
                 $stmt = $pdo->prepare("DELETE FROM words WHERE word_set_id = ?");
                 $stmt->execute([$setId]);
                 
-                // 4. Удаляем сам набор
+     
                 $stmt = $pdo->prepare("DELETE FROM word_sets WHERE id = ?");
                 $stmt->execute([$setId]);
                 
@@ -169,7 +163,7 @@ try {
             break;
             
         case 'PUT':
-            // Обновление набора слов
+       
             $setId = $_GET['set_id'] ?? null;
             $input = json_decode(file_get_contents('php://input'), true);
             
@@ -185,7 +179,7 @@ try {
                 exit;
             }
             
-            // Проверяем, не существует ли другой набор с таким названием
+            
             $stmt = $pdo->prepare("SELECT id FROM word_sets WHERE name = ? AND id != ?");
             $stmt->execute([$input['name'], $setId]);
             if ($stmt->fetch()) {
@@ -194,7 +188,7 @@ try {
                 exit;
             }
             
-            // Обновляем набор
+    
             $stmt = $pdo->prepare("
                 UPDATE word_sets 
                 SET name = ?, description = ?, updated_at = CURRENT_TIMESTAMP

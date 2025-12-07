@@ -9,7 +9,7 @@ if (!isAdmin()) {
     exit;
 }
 
-// Создаем соединение с базой данных
+
 $database = new Database();
 $pdo = $database->getConnection();
 
@@ -18,7 +18,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 try {
     switch ($method) {
         case 'GET':
-            // Получение списка пользователей (только обычные пользователи, не админы)
+
             $stmt = $pdo->query("
                 SELECT id, username, email, display_name, created_at, last_activity, role
                 FROM users 
@@ -27,7 +27,7 @@ try {
             ");
             $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
-            // Отладочная информация
+            
             error_log("📋 Отправляем пользователей: " . count($users));
             foreach ($users as $user) {
                 error_log("👤 " . $user['username'] . " - роль: " . $user['role']);
@@ -37,7 +37,7 @@ try {
             break;
             
         case 'DELETE':
-            // Удаление пользователя
+          
             $userId = $_GET['user_id'] ?? null;
             
             if (!$userId) {
@@ -46,7 +46,7 @@ try {
                 exit;
             }
             
-            // Проверяем, что пользователь не админ
+
             $checkStmt = $pdo->prepare("SELECT role FROM users WHERE id = ?");
             $checkStmt->execute([$userId]);
             $user = $checkStmt->fetch(PDO::FETCH_ASSOC);
@@ -63,10 +63,10 @@ try {
                 exit;
             }
             
-            // Начинаем транзакцию
+
             $pdo->beginTransaction();
             
-            // Удаляем пользователя
+ 
             $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
             $stmt->execute([$userId]);
             

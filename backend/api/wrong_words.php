@@ -1,6 +1,4 @@
 <?php
-// backend/api/wrong_words.php
-
 header('Access-Control-Allow-Origin: http://localhost:3000');
 header('Access-Control-Allow-Credentials: true');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
@@ -35,24 +33,21 @@ $db = $database->getConnection();
 
 $method = $_SERVER['REQUEST_METHOD'];
 
-// ПРОСТОЙ СПОСОБ: Получаем путь из REQUEST_URI
+
 $request_uri = $_SERVER['REQUEST_URI'];
 error_log("Full request URI: " . $request_uri);
 
-// Убираем query string если есть
 $request_uri = strtok($request_uri, '?');
 
-// Разбиваем путь на части
 $path_parts = explode('/', trim($request_uri, '/'));
 
-// Находим позицию wrong_words.php в массиве
+
 $script_index = array_search('wrong_words.php', $path_parts);
 
-// Получаем параметры после wrong_words.php
+
 if ($script_index !== false && isset($path_parts[$script_index + 1])) {
     $endpoint_param = $path_parts[$script_index + 1];
     
-    // Если есть еще параметры (для check/word_id)
     if (isset($path_parts[$script_index + 2])) {
         $second_param = $path_parts[$script_index + 2];
     } else {
@@ -69,10 +64,8 @@ error_log("Second param: " . ($second_param ?: 'null'));
 switch ($method) {
     case 'GET':
         if ($endpoint_param === 'check' && is_numeric($second_param)) {
-            // Для /wrong_words.php/check/76
             checkWord($db, $user_id, $second_param);
         } else if (is_numeric($endpoint_param)) {
-            // Для /wrong_words.php/76 (GET - получить конкретное слово)
             getWrongWord($db, $user_id, $endpoint_param);
         } else {
             getUserWrongWords($db, $user_id);
@@ -108,7 +101,7 @@ switch ($method) {
         echo json_encode(["message" => "Метод не поддерживается"]);
 }
 
-// Функции остаются без изменений
+
 function getWrongWord($db, $user_id, $id) {
     try {
         $query = "
@@ -184,7 +177,7 @@ function addWrongWord($db, $user_id) {
     }
     
     try {
-        // Проверяем, существует ли уже запись
+    
         $check_query = "SELECT id, mistakes FROM wrong_answers 
                        WHERE user_id = :user_id AND word_id = :word_id";
         $check_stmt = $db->prepare($check_query);
@@ -193,7 +186,7 @@ function addWrongWord($db, $user_id) {
         $check_stmt->execute();
         
         if ($check_stmt->rowCount() > 0) {
-            // Увеличиваем счетчик ошибок
+
             $row = $check_stmt->fetch(PDO::FETCH_ASSOC);
             $new_mistakes = $row['mistakes'] + 1;
             
@@ -210,7 +203,7 @@ function addWrongWord($db, $user_id) {
                 "mistakes" => $new_mistakes
             ]);
         } else {
-            // Добавляем новую запись
+   
             $insert_query = "INSERT INTO wrong_answers (user_id, word_id, mistakes, created_at, last_practice) 
                             VALUES (:user_id, :word_id, 1, NOW(), NOW())";
             $insert_stmt = $db->prepare($insert_query);

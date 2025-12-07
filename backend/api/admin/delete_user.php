@@ -14,27 +14,11 @@ require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../auth.php';
 
-// ДОБАВИМ ОТЛАДОЧНУЮ ИНФОРМАЦИЮ
 error_log("=== DELETE_USER.PHP ACCESS ATTEMPT ===");
 error_log("Session ID: " . session_id());
 error_log("Session data: " . print_r($_SESSION, true));
 error_log("isLoggedIn() returns: " . (isLoggedIn() ? 'true' : 'false'));
 error_log("isAdmin() returns: " . (isAdmin() ? 'true' : 'false'));
-
-// ВРЕМЕННО: ОТКЛЮЧИМ ВСЕ ПРОВЕРКИ АВТОРИЗАЦИИ
-/*
-if (!isAdmin()) {
-    http_response_code(403);
-    echo json_encode(['error' => 'Доступ запрещен']);
-    exit;
-}
-
-if (!isLoggedIn()) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Требуется авторизация']);
-    exit;
-}
-*/
 
 $user_id = $_GET['user_id'] ?? null; 
 
@@ -50,7 +34,6 @@ $pdo = $database->getConnection();
 try {
     $pdo->beginTransaction();
 
-    // 1. Проверяем, существует ли пользователь
     $check_user = $pdo->prepare("SELECT id, username, role FROM users WHERE id = ?");
     $check_user->execute([$user_id]);
     $user = $check_user->fetch(PDO::FETCH_ASSOC);
@@ -61,7 +44,6 @@ try {
         exit;
     }
 
-    // 2. Не позволяем удалять администраторов
     if ($user['role'] === 'admin') {
         http_response_code(403);
         echo json_encode(['error' => 'Нельзя удалять администраторов']);
@@ -70,7 +52,6 @@ try {
 
     error_log("Начинаем удаление пользователя ID: $user_id, Имя: " . $user['username']);
 
-    // 3. Удаляем все связанные данные в правильном порядке
     $tables_to_delete = [
         'user_achievements',
         'word_progress', 
@@ -80,7 +61,6 @@ try {
 
     $deleted_rows = 0;
     foreach ($tables_to_delete as $table) {
-        // Проверяем существование таблицы перед удалением
         $check_table = $pdo->query("SHOW TABLES LIKE '$table'")->rowCount();
         if ($check_table > 0) {
             $stmt = $pdo->prepare("DELETE FROM $table WHERE user_id = ?");
@@ -95,7 +75,6 @@ try {
 
     error_log("Всего удалено связанных записей: $deleted_rows");
 
-    // 4. Теперь удаляем самого пользователя
     $delete_user = $pdo->prepare("DELETE FROM users WHERE id = ?");
     $delete_user->execute([$user_id]);
 

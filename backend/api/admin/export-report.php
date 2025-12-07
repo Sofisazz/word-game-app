@@ -1,5 +1,4 @@
 <?php
-// backend/api/admin/export-report.php
 
 header('Access-Control-Allow-Origin: http://localhost:3000');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
@@ -37,7 +36,6 @@ $database = new Database();
 $pdo = $database->getConnection();
 
 try {
-    // 1. Получаем основную информацию о пользователе
     $user_query = "SELECT id, username, email, display_name, created_at, last_activity, role FROM users WHERE id = ?";
     $user_stmt = $pdo->prepare($user_query);
     $user_stmt->execute([$user_id]);
@@ -52,7 +50,6 @@ try {
 
     error_log("User found: " . $user['username']);
 
-    // 2. Получаем статистику пользователя из user_stats
     $stats_query = "SELECT * FROM user_stats WHERE user_id = ?";
     $stats_stmt = $pdo->prepare($stats_query);
     $stats_stmt->execute([$user_id]);
@@ -64,7 +61,6 @@ try {
         error_log("No user stats found for user: $user_id");
     }
 
-    // 3. Получаем количество выученных слов из word_progress
     $words_query = "
         SELECT COUNT(*) as learned_words 
         FROM word_progress 
@@ -76,7 +72,6 @@ try {
 
     error_log("Learned words: " . ($words_data['learned_words'] ?? 0));
 
-    // 4. Получаем достижения
     $achievements_query = "SELECT COUNT(*) as achievements_count FROM user_achievements WHERE user_id = ?";
     $achievements_stmt = $pdo->prepare($achievements_query);
     $achievements_stmt->execute([$user_id]);
@@ -84,7 +79,6 @@ try {
 
     error_log("Achievements count: " . ($achievements_data['achievements_count'] ?? 0));
 
-    // 5. Получаем общую статистику из game_results
     $game_stats_query = "
         SELECT 
             COUNT(*) as total_games,
@@ -100,7 +94,6 @@ try {
 
     error_log("Game stats: " . print_r($game_stats, true));
 
-    // 6. Если в user_stats нет данных, но есть в game_results - создаем запись
     if (!$stats && $game_stats['total_games'] > 0) {
         error_log("Creating user_stats from game_results data");
         $total_xp = $game_stats['total_xp'] ?? 0;
@@ -120,7 +113,6 @@ try {
         
         if ($result) {
             error_log("Successfully created user_stats");
-            // Получаем обновленную статистику
             $stats_stmt->execute([$user_id]);
             $stats = $stats_stmt->fetch(PDO::FETCH_ASSOC);
         } else {
@@ -128,7 +120,6 @@ try {
         }
     }
 
-    // Формируем отчет
     $report = [
         'user_info' => $user,
         'statistics' => $stats ?: [

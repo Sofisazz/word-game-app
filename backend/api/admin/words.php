@@ -15,21 +15,14 @@ require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../config/cors.php';
 require_once __DIR__ . '/../auth.php';
 
-// ДОБАВИМ ОТЛАДОЧНУЮ ИНФОРМАЦИЮ
+
 error_log("=== WORDS.PHP ACCESS ATTEMPT ===");
 error_log("Session ID: " . session_id());
 error_log("Session data: " . print_r($_SESSION, true));
 error_log("isLoggedIn() returns: " . (isLoggedIn() ? 'true' : 'false'));
 error_log("isAdmin() returns: " . (isAdmin() ? 'true' : 'false'));
 
-// ВРЕМЕННО: ОТКЛЮЧИМ ПРОВЕРКУ АДМИНИСТРАТОРА
-/*
-if (!isAdmin()) {
-    http_response_code(403);
-    echo json_encode(['error' => 'Доступ запрещен']);
-    exit;
-}
-*/
+
 
 $database = new Database();
 $pdo = $database->getConnection();
@@ -39,7 +32,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 try {
     switch ($method) {
         case 'GET':
-            // Получение слов в наборе
+
             $setId = $_GET['set_id'] ?? null;
             
             if (!$setId) {
@@ -56,7 +49,7 @@ try {
             break;
             
         case 'POST':
-            // Добавление нового слова
+
             $input = json_decode(file_get_contents('php://input'), true);
             
             if (!isset($input['set_id']) || !isset($input['original_word']) || !isset($input['translation'])) {
@@ -73,14 +66,14 @@ try {
                 $input['set_id'],
                 $input['original_word'],
                 $input['translation'],
-                $input['example_sentence'] ?? null // Опциональное поле
+                $input['example_sentence'] ?? null 
             ]);
             
             echo json_encode(['success' => true, 'word_id' => $pdo->lastInsertId()]);
             break;
             
         case 'PUT':
-            // Обновление слова
+ 
             $wordId = $_GET['word_id'] ?? null;
             $input = json_decode(file_get_contents('php://input'), true);
             
@@ -104,7 +97,7 @@ try {
             $stmt->execute([
                 $input['original_word'],
                 $input['translation'],
-                $input['example_sentence'] ?? null, // Опциональное поле
+                $input['example_sentence'] ?? null,
                 $wordId
             ]);
             
@@ -112,7 +105,7 @@ try {
             break;
             
         case 'DELETE':
-            // Удаление слова
+          
             $wordId = $_GET['word_id'] ?? null;
             
             if (!$wordId) {

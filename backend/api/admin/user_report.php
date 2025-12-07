@@ -26,7 +26,7 @@ $database = new Database();
 $pdo = $database->getConnection();
 
 try {
-    // Получаем основную информацию о пользователе
+
     $user_query = "SELECT id, username, email, display_name, created_at, last_activity, role FROM users WHERE id = ?";
     $user_stmt = $pdo->prepare($user_query);
     $user_stmt->execute([$user_id]);
@@ -38,25 +38,25 @@ try {
         exit;
     }
 
-    // Получаем статистику пользователя
+
     $stats_query = "SELECT * FROM user_stats WHERE user_id = ?";
     $stats_stmt = $pdo->prepare($stats_query);
     $stats_stmt->execute([$user_id]);
     $stats = $stats_stmt->fetch(PDO::FETCH_ASSOC);
 
-    // Получаем количество выученных слов
+
     $words_query = "SELECT COUNT(*) as learned_words FROM word_progress WHERE user_id = ? AND times_correct >= 2";
     $words_stmt = $pdo->prepare($words_query);
     $words_stmt->execute([$user_id]);
     $words_data = $words_stmt->fetch(PDO::FETCH_ASSOC);
 
-    // Получаем достижения
+
     $achievements_query = "SELECT COUNT(*) as achievements_count FROM user_achievements WHERE user_id = ?";
     $achievements_stmt = $pdo->prepare($achievements_query);
     $achievements_stmt->execute([$user_id]);
     $achievements_data = $achievements_stmt->fetch(PDO::FETCH_ASSOC);
 
-    // Формируем отчет в JSON (в реальном приложении можно генерировать Excel)
+
     $report = [
         'user_info' => $user,
         'statistics' => $stats ?: [
@@ -70,7 +70,7 @@ try {
         'report_generated' => date('Y-m-d H:i:s')
     ];
 
-    // Возвращаем JSON отчет
+
     header('Content-Type: application/json');
     header('Content-Disposition: attachment; filename="user_report_' . $user['username'] . '.json"');
     echo json_encode($report, JSON_PRETTY_PRINT);

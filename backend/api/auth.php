@@ -1,9 +1,9 @@
 <?php
 require_once __DIR__ . '/../config/cors.php';
 
-// Настройки сессии
+
 session_set_cookie_params([
-    'lifetime' => 86400, // 24 часа
+    'lifetime' => 86400,
     'path' => '/',
     'domain' => 'localhost',
     'secure' => false,
@@ -30,7 +30,7 @@ function setUserSession($user) {
     $_SESSION['user_id'] = $user['id'];
     $_SESSION['role'] = $user['role'];
     
-    // Логируем установку сессии
+
     error_log("Session set for user: " . $user['username'] . " with role: " . $user['role']);
 }
 
@@ -39,10 +39,10 @@ function getUserSession() {
 }
 
 function logout() {
-    // Очищаем все данные сессии
+
     $_SESSION = array();
     
-    // Удаляем cookie сессии
+  
     if (ini_get("session.use_cookies")) {
         $params = session_get_cookie_params();
         setcookie(session_name(), '', time() - 42000,
@@ -51,7 +51,7 @@ function logout() {
         );
     }
     
-    // Уничтожаем сессию
+
     session_destroy();
 }
 ?>

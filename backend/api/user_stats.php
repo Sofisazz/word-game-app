@@ -1,11 +1,9 @@
 <?php
-// backend/api/user_stats.php
 require_once '../config/cors.php';
 require_once '../config/database.php';
 
 header('Content-Type: application/json');
 
-// ДОБАВЬ ЭТУ ФУНКЦИЮ в user_stats.php
 function calculateNewLevel($total_xp) {
     $base_xp = 250;
     $level = 1;
@@ -27,7 +25,7 @@ function getLevelProgress($total_xp) {
     $level = 1;
     $xp_accumulated = 0;
     
-    // Сначала находим уровень
+
     while (true) {
         $xp_for_next_level = $base_xp + ($level - 1) * 100;
         
@@ -39,16 +37,16 @@ function getLevelProgress($total_xp) {
         $level++;
     }
     
-    // XP в текущем уровне
+
     $current_xp_in_level = $total_xp - $xp_accumulated;
     
-    // XP для следующего уровня
+ 
     $next_level_xp_required = $base_xp + ($level - 1) * 100;
-    
-    // XP до следующего уровня
+
+
     $xp_needed_for_next_level = max(0, $next_level_xp_required - $current_xp_in_level);
     
-    // Процент прогресса
+   
     $progress_percentage = $next_level_xp_required > 0 ? 
         round(max(0, min(100, $current_xp_in_level / $next_level_xp_required * 100)), 1) : 0;
     
@@ -78,7 +76,7 @@ try {
             exit;
         }
         
-        // Создаем базовую статистику если ее нет
+  
         $check_stmt = $pdo->prepare("SELECT id FROM user_stats WHERE user_id = ?");
         $check_stmt->execute([$user_id]);
         
@@ -87,7 +85,7 @@ try {
             $insert_stmt->execute([$user_id]);
         }
 
-        // Получаем статистику пользователя
+     
         $stats_query = "SELECT 
             us.*,
             (SELECT COUNT(*) FROM user_achievements ua WHERE ua.user_id = us.user_id) as achievements_count,
@@ -105,7 +103,7 @@ try {
             exit;
         }
 
-        // Получаем достижения пользователя
+        
         $achievements_query = "SELECT 
             a.id, a.name, a.description, a.icon, a.xp_reward, a.badge, a.image_url
         FROM achievements a

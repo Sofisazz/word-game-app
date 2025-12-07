@@ -43,7 +43,7 @@ try {
     $stmt = $pdo->prepare("UPDATE users SET last_activity = NOW() WHERE id = ?");
     $stmt->execute([$userId]);
     
-    // Получаем обновленное значение для проверки
+
     $checkStmt = $pdo->prepare("SELECT last_activity FROM users WHERE id = ?");
     $checkStmt->execute([$userId]);
     $updatedActivity = $checkStmt->fetch(PDO::FETCH_ASSOC);
