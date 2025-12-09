@@ -75,15 +75,15 @@ const Hero = ({ user }) => {
               <div className="hero-stats">
                 <div className="stat">
                   <div className="stat-number">500+</div>
-                  <div className="stat-label">слов для изучения</div>
+                  <div className="stat-label-h">слов для изучения</div>
                 </div>
                 <div className="stat">
                   <div className="stat-number">3</div>
-                  <div className="stat-label">типа игр</div>
+                  <div className="stat-label-h">типа игр</div>
                 </div>
                 <div className="stat">
                   <div className="stat-number">100%</div>
-                  <div className="stat-label">эффективность</div>
+                  <div className="stat-label-h">эффективность</div>
                 </div>
               </div>
 

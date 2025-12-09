@@ -1,4 +1,4 @@
-/* ===== СБРОС СТИЛЕЙ ===== */
+
 * {
   margin: 0;
   padding: 0;
@@ -19,7 +19,7 @@ body {
   min-height: 100vh;
 }
 
-/* ===== BUTTONS ===== */
+
 .btn {
   padding: 1rem 2rem;
   border: none;
@@ -87,11 +87,6 @@ body {
   border-color: #64748b;
 }
 
-/* ===== STATS & ACHIEVEMENTS ===== */
-
-
-
-/* ===== MODAL ===== */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -211,7 +206,6 @@ body {
   border-top: 1px solid #e2e8f0;
 }
 
-/* ===== USER MENU ===== */
 .user-menu {
   display: flex;
   align-items: center;
@@ -273,7 +267,6 @@ body {
   opacity: 0.8;
 }
 
-/* ===== MESSAGES ===== */
 .message {
   padding: 1rem;
   border-radius: 10px;
@@ -348,7 +341,6 @@ body {
   font-size: 1.1rem;
 }
 
-/* ===== ADMIN PANEL ===== */
 .admin-layout {
   margin: 0;
   padding: 0;
@@ -443,7 +435,6 @@ body {
   overflow-y: auto;
 }
 
-/* ===== BADGES ===== */
 .practice-badge-inline {
   position: absolute;
   top: -5px;
@@ -488,7 +479,6 @@ body {
   }
 }
 
-/* ===== GAME STYLES ===== */
 .game-info-row {
   display: flex;
   justify-content: space-between;
@@ -567,7 +557,6 @@ body {
   opacity: 0.9;
 }
 
-/* ===== ERROR HANDLING ===== */
 .error-message {
   color: #dc3545;
   font-size: 0.875rem;
@@ -618,7 +607,6 @@ body {
   animation: fadeIn 0.3s ease-in-out;
 }
 
-/* ===== UTILITIES ===== */
 .small-text {
   font-size: 0.75rem;
   color: #6c757d;
@@ -637,7 +625,6 @@ body {
   color: #666;
 }
 
-/* ===== SCROLLBAR ===== */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -655,7 +642,6 @@ body {
   background: #4f46e5;
 }
 
-/* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
   .header-content {
     flex-direction: column;
