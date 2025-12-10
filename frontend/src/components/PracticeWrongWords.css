@@ -706,12 +706,10 @@
   transform: translateY(-1px);
 }
 
-
 .btn-speak::before {
   content: "🔊";
   font-size: 20px;
 }
-
 
 .hint {
   color: #666;
@@ -719,7 +717,6 @@
   margin-top: 10px;
   font-style: italic;
 }
-
 
 .example {
   font-style: italic;
@@ -735,7 +732,6 @@
 .example strong {
   color: #333;
 }
-
 
 @keyframes speaking {
   0% {
@@ -754,7 +750,6 @@
   background: #ffc107 !important;
 }
 
-
 @media (max-width: 768px) {
   .btn-speak {
     padding: 12px 20px;
@@ -771,7 +766,6 @@
     font-size: 2rem;
   }
 }
-
 
 .speaking-indicator {
   display: inline-block;
@@ -797,7 +791,6 @@
     transform: scale(1);
   }
 }
-
 
 .game-controls {
   display: flex;
@@ -837,7 +830,6 @@
   transform: none !important;
 }
 
-
 .btn-check {
   background-color: #17a2b8;
   color: white;
@@ -852,7 +844,6 @@
 .btn-check:disabled {
   background-color: #6c757d;
 }
-
 
 @keyframes correctAnswer {
   0% {
@@ -884,5 +875,29 @@
   }
   75% {
     transform: translateX(5px);
+  }
+}
+
+@media (max-width: 1100px) {
+  .word-item {
+    display: flex;
+    justify-content: center;
+  }
+  .word-display {
+    flex-direction: column;
+  }
+
+  .word-main{
+      justify-content: center;
+  }
+}
+
+@media (max-width: 450px) {
+  .options-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .typing-form {
+    flex-direction: column;
   }
 }

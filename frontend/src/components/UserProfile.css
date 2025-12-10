@@ -518,3 +518,12 @@
   font-size: 0.75rem;
   margin-left: 8px;
 }
+
+@media (max-width:650px) {
+  .profile-header{
+    display: flex;
+    flex-direction: column;
+
+  }
+  
+}

@@ -233,3 +233,14 @@
   margin-bottom: 1rem;
   font-size: 1.1rem;
 }
+
+@media (max-width:450px) {
+  
+.options-grid {
+  grid-template-columns: 1fr;
+}
+.typing-form{
+  flex-direction: column;
+}
+
+}

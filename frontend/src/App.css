@@ -341,99 +341,7 @@ body {
   font-size: 1.1rem;
 }
 
-.admin-layout {
-  margin: 0;
-  padding: 0;
-}
 
-.App:has(.admin-panel) header,
-.App:has(.admin-panel) footer {
-  display: none;
-}
-
-.admin-panel {
-  display: flex;
-  min-height: 100vh;
-  background-color: #f5f5f5;
-}
-
-.admin-sidebar {
-  width: 250px;
-  background: #2c3e50;
-  color: white;
-  display: flex;
-  flex-direction: column;
-}
-
-.admin-sidebar-header {
-  padding: 1.5rem;
-  border-bottom: 1px solid #34495e;
-}
-
-.admin-sidebar-header h2 {
-  margin: 0;
-  font-size: 1.2rem;
-}
-
-.admin-sidebar-nav {
-  flex: 1;
-  padding: 1rem 0;
-}
-
-.admin-nav-item {
-  width: 100%;
-  padding: 1rem 1.5rem;
-  background: none;
-  border: none;
-  color: white;
-  text-align: left;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  transition: background-color 0.3s;
-}
-
-.admin-nav-item:hover {
-  background-color: #34495e;
-}
-
-.admin-nav-item.active {
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-}
-
-.nav-icon {
-  font-size: 1.2rem;
-}
-
-.admin-sidebar-footer {
-  padding: 1rem;
-  border-top: 1px solid #34495e;
-}
-
-.admin-logout-btn {
-  width: 100%;
-  padding: 0.75rem;
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  justify-content: center;
-}
-
-.admin-logout-btn:hover {
-  background: #c0392b;
-}
-
-.admin-content {
-  flex: 1;
-  padding: 2rem;
-  overflow-y: auto;
-}
 
 .practice-badge-inline {
   position: absolute;
@@ -686,6 +594,6 @@ body {
 
 @media (max-width: 968px) {
   .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(1, 1fr);
   }
 }

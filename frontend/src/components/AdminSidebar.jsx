@@ -1,4 +1,5 @@
 import React from 'react';
+import './AdminPanel.css'
 
 const AdminSidebar = ({ activeSection, setActiveSection, onLogout }) => {
   const menuItems = [
