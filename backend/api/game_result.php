@@ -450,9 +450,9 @@ try {
     try {
         $updateActivityStmt = $pdo->prepare("UPDATE users SET last_activity = NOW() WHERE id = ?");
         $updateActivityStmt->execute([$user_id]);
-        error_log("✅ Updated last_activity for user ID: $user_id");
+        error_log("Updated last_activity for user ID: $user_id");
     } catch (Exception $e) {
-        error_log("⚠️ Failed to update last_activity: " . $e->getMessage());
+        error_log("Failed to update last_activity: " . $e->getMessage());
     }
 
 

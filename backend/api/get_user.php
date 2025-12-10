@@ -28,9 +28,9 @@ try {
             $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
             
-            error_log("📋 Отправляем пользователей: " . count($users));
+            error_log("Отправляем пользователей: " . count($users));
             foreach ($users as $user) {
-                error_log("👤 " . $user['username'] . " - роль: " . $user['role']);
+                error_log(" " . $user['username'] . " - роль: " . $user['role']);
             }
             
             echo json_encode(['success' => true, 'users' => $users]);

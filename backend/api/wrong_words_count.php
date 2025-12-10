@@ -1,5 +1,4 @@
 <?php
-// backend/api/wrong_words_count.php
 
 header('Access-Control-Allow-Origin: http://localhost:3000');
 header('Access-Control-Allow-Credentials: true');

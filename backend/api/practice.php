@@ -57,7 +57,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     }
 }
 
-// Удаляем слово из списка неправильных
 if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
     if (!empty($data->user_id) && !empty($data->word_id)) {
         $query = "DELETE FROM wrong_answers 
