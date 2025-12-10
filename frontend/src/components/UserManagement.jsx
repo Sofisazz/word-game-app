@@ -22,7 +22,7 @@ const UserManagement = () => {
       try {
         response = await adminAPI.getAllUsersWithStats();
         
-        // Отладка первого пользователя
+  
         if (response.data.users && response.data.users.length > 0) {
           const firstUser = response.data.users[0];
           console.log('Первый пользователь:', firstUser.username);

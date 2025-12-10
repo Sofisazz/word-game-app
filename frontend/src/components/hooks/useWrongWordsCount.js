@@ -9,7 +9,6 @@ export const useWrongWordsCount = () => {
   useEffect(() => {
     fetchWrongWordsCount();
     
-    // Обновляем счетчик каждые 30 секунд
     const interval = setInterval(fetchWrongWordsCount, 30000);
     
     return () => clearInterval(interval);

@@ -16,19 +16,15 @@ const PracticeWrongWords = () => {
   const [isFinished, setIsFinished] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [options, setOptions] = useState([]); // Для хранения вариантов ответов
-  
-  // Пагинация
+  const [options, setOptions] = useState([]); 
   const [wordsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [showAllWords, setShowAllWords] = useState(false);
 
-  // Загрузка неправильных слов из БД
   useEffect(() => {
     fetchWrongAnswers();
   }, []);
 
-  // Генерация вариантов при изменении слова или режима
   useEffect(() => {
     if (practiceWords.length > 0 && currentIndex < practiceWords.length) {
       const currentWord = practiceWords[currentIndex];
@@ -44,29 +40,29 @@ const PracticeWrongWords = () => {
       setLoading(true);
       setError(null);
       
-      console.log('🔍 Fetching wrong words from API...');
+      console.log('Fetching wrong words from API...');
       
       const response = await wrongWordsAPI.getUserWrongWords();
       
-      console.log('📥 API Response:', response);
-      console.log('📊 Response data:', response.data);
+      console.log('API Response:', response);
+      console.log('Response data:', response.data);
       
       if (response.data && Array.isArray(response.data)) {
-        console.log(`✅ Found ${response.data.length} wrong words`);
+        console.log(`Found ${response.data.length} wrong words`);
         
         if (response.data.length > 0) {
-          console.log('📝 First few words:', response.data.slice(0, 3));
+          console.log('First few words:', response.data.slice(0, 3));
         }
         
         setWrongAnswers(response.data);
       } else {
-        console.warn('⚠️ No wrong words array in response');
+        console.warn('No wrong words array in response');
         console.log('Full response:', response);
         setWrongAnswers([]);
       }
     } catch (error) {
-      console.error('❌ Error fetching wrong words:', error);
-      console.error('❌ Error details:', error.response ? error.response.data : error.message);
+      console.error('Error fetching wrong words:', error);
+      console.error('Error details:', error.response ? error.response.data : error.message);
       setError('Не удалось загрузить слова для повторения');
       setWrongAnswers([]);
     } finally {
@@ -74,12 +70,10 @@ const PracticeWrongWords = () => {
     }
   };
 
-  // Статистика
   const getStatistics = () => {
     return getWrongWordsStatistics(wrongAnswers);
   };
 
-  // Начать практику
   const startPractice = (selectedMode) => {
     setMode(selectedMode);
     setCurrentIndex(0);
@@ -88,7 +82,7 @@ const PracticeWrongWords = () => {
     setShowAnswer(false);
     setUserInput('');
     
-    // Используем слова из wrongAnswers для практики
+    
     const wordsForPractice = wrongAnswers.map(word => ({
       id: word.word_id || word.id,
       original_word: word.original_word,
@@ -100,7 +94,6 @@ const PracticeWrongWords = () => {
     setPracticeWords(wordsForPractice);
   };
 
-  // Обработка выбора ответа (для режимов choice и listening)
   const handleChoiceAnswer = async (selected) => {
     const currentWord = practiceWords[currentIndex];
     const isCorrect = selected === currentWord.translation;
@@ -109,7 +102,6 @@ const PracticeWrongWords = () => {
       setScore(score + 1);
     } else {
       setShowAnswer(true);
-      // Увеличиваем счетчик ошибок в БД
       await incrementMistakes(currentWord.id);
     }
     
@@ -119,7 +111,6 @@ const PracticeWrongWords = () => {
     }, 1500);
   };
 
-  // Обработка ввода ответа (для режима typing)
   const handleTypingAnswer = async (e) => {
     e.preventDefault();
     const currentWord = practiceWords[currentIndex];
@@ -131,7 +122,6 @@ const PracticeWrongWords = () => {
       setTimeout(() => nextWord(), 1000);
     } else {
       setShowAnswer(true);
-      // Увеличиваем счетчик ошибок в БД
       await incrementMistakes(currentWord.id);
       setTimeout(() => {
         setShowAnswer(false);
@@ -140,7 +130,6 @@ const PracticeWrongWords = () => {
     }
   };
 
-  // Увеличить счетчик ошибок
   const incrementMistakes = async (wordId) => {
     try {
       const wordToUpdate = wrongAnswers.find(w => (w.word_id || w.id) === wordId);
@@ -150,7 +139,6 @@ const PracticeWrongWords = () => {
         action: 'increment'
       });
       
-      // Обновляем локальное состояние
       if (response.data) {
         setWrongAnswers(prev => 
           prev.map(word => 
@@ -168,9 +156,6 @@ const PracticeWrongWords = () => {
 
 const markAsCorrect = async (wordId) => {
   try {
-    // Находим запись в wrongAnswers
-    // wordId - это id слова из таблицы words (word_id)
-    // Нам нужно найти запись где word.word_id === wordId
     const wordToDelete = wrongAnswers.find(w => w.word_id === wordId);
     
     if (!wordToDelete) {
@@ -178,7 +163,7 @@ const markAsCorrect = async (wordId) => {
       return;
     }
 
-    const wrongAnswerId = wordToDelete.id; // Это id записи в таблице wrong_answers
+    const wrongAnswerId = wordToDelete.id; 
     
     console.log('Удаление слова:', {
       wordId: wordId,
@@ -186,19 +171,14 @@ const markAsCorrect = async (wordId) => {
       wordData: wordToDelete
     });
 
-    // Удаляем запись из wrong_answers по ее ID
     await wrongWordsAPI.deleteWrongWord(wrongAnswerId);
     
-    // ОБНОВЛЕННАЯ ЛОГИКА ФИЛЬТРАЦИИ:
-    // Удаляем запись по id записи wrong_answers, а не по word_id
     setWrongAnswers(prev => prev.filter(word => word.id !== wrongAnswerId));
     
-    // Если мы в режиме практики, обновляем practiceWords
     if (mode) {
-      // В practiceWords id - это word_id, поэтому фильтруем по word_id
       setPracticeWords(prev => prev.filter(word => word.id !== wordId));
       
-      // Проверяем текущее слово
+
       const currentWord = practiceWords[currentIndex];
       if (currentWord && currentWord.id === wordId) {
         if (currentIndex < practiceWords.length - 1) {
@@ -217,7 +197,7 @@ const markAsCorrect = async (wordId) => {
   }
 };
 
-  // Переход к следующему слову
+
   const nextWord = () => {
     if (currentIndex < practiceWords.length - 1) {
       setCurrentIndex(currentIndex + 1);
@@ -226,7 +206,7 @@ const markAsCorrect = async (wordId) => {
     }
   };
 
-  // Очистить все неправильные слова
+
   const clearAllWrongAnswers = async () => {
     if (window.confirm('Вы уверены, что хотите удалить все слова из списка для повторения? Это действие нельзя отменить.')) {
       try {
@@ -241,7 +221,7 @@ const markAsCorrect = async (wordId) => {
     }
   };
 
-  // Пагинационные функции
+
   const handleLoadMore = () => {
     if (showAllWords) {
       setCurrentPage(prev => Math.min(prev + 1, totalPages));
@@ -263,7 +243,7 @@ const markAsCorrect = async (wordId) => {
     setCurrentPage(pageNumber);
   };
 
-  // Рассчитываем слова для текущей страницы
+
   const indexOfLastWord = currentPage * wordsPerPage;
   const indexOfFirstWord = indexOfLastWord - wordsPerPage;
   const currentWords = showAllWords 
@@ -616,7 +596,6 @@ const markAsCorrect = async (wordId) => {
           </div>
         )}
 
-        {/* Варианты ответов для режимов choice и listening */}
         {(mode === 'choice' || mode === 'listening') && (
           <div className="options-grid">
             {options.map((option, idx) => (
@@ -632,7 +611,6 @@ const markAsCorrect = async (wordId) => {
           </div>
         )}
 
-        {/* Поле ввода для режима typing */}
         {mode === 'typing' && (
           <form onSubmit={handleTypingAnswer} className="typing-form">
             <input
@@ -665,7 +643,7 @@ const markAsCorrect = async (wordId) => {
             Показать ответ
           </button>
          <button 
-  onClick={() => markAsCorrect(currentWord.id)}  // currentWord.id = word_id
+  onClick={() => markAsCorrect(currentWord.id)}  
   className="btn btn-mark-learned"
 >
   Я выучил это слово
